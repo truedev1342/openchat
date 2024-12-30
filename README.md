@@ -20,3 +20,26 @@ with Next.js, Supabase, and LiveKit.
 ## Tech stack
 
 - [Next.js 16](https://nextjs.org/) (App Router) + React 19 + TypeScript
+- [Supabase](https://supabase.com/) — Postgres, auth, storage, and realtime
+- [LiveKit](https://livekit.io/) — WebRTC voice/video
+- [Tailwind CSS 4](https://tailwindcss.com/) + shadcn/ui components
+- [Zustand](https://github.com/pmndrs/zustand) for client state
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 20+
+- A [Supabase](https://supabase.com/) project (free tier works)
+- _(Optional)_ A [LiveKit](https://cloud.livekit.io/) project for calls
+
+### 1. Install
+
+```bash
+git clone https://github.com/softdev1012/openchat.git
+cd openchat
+npm install
+```
+
+### 2. Configure
+
