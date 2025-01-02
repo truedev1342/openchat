@@ -43,3 +43,26 @@ npm install
 
 ### 2. Configure
 
+```bash
+cp .env.example .env.local
+```
+
+Fill in your Supabase URL and anon key. See [.env.example](.env.example) for the full
+list of variables. LiveKit credentials are configured per-workspace in the admin UI.
+
+### 3. Run
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). On first launch, the setup wizard at
+[/setup](http://localhost:3000/setup) will provision the database schema and create your
+first workspace.
+
+## Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Build for production |
