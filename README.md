@@ -66,3 +66,26 @@ first workspace.
 | --- | --- |
 | `npm run dev` | Start the development server |
 | `npm run build` | Build for production |
+| `npm run start` | Run the production build |
+| `npm run lint` | Lint the codebase |
+
+## Project structure
+
+```
+src/
+├── app/            # Next.js routes (pages + API route handlers)
+├── components/     # UI: chat, sidebar, calls, workspace, ui primitives
+├── hooks/          # presence, notifications, scheduled messages, …
+├── lib/            # Supabase client, provisioner, store, utilities
+├── types/          # shared TypeScript types
+└── middleware.ts   # auth session handling
+```
+
+## Contributing
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for setup and
+guidelines. Please use the issue templates when reporting bugs or requesting features.
+
+## License
+
+Released under the MIT License. See the repository for details.
