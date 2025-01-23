@@ -1,2 +1,2 @@
-// temporary legacy api
+// temporary mock data
 export const placeholder = true;
