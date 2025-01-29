@@ -114,3 +114,42 @@
   --sidebar-accent-foreground: #e0dff0;
   --sidebar-border: #3a3860;
   --sidebar-ring: #9B8AFF;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* TipTap Editor */
+.tiptap-editor {
+  min-height: 40px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  outline: none;
+  color: var(--foreground);
+}
+
+.tiptap-editor p {
+  margin: 0;
+}
+
+.tiptap-editor p.is-editor-empty:first-child::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.tiptap-editor strong {
+  font-weight: 700;
+}
+
+.tiptap-editor em {
