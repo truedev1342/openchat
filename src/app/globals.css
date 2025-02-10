@@ -191,3 +191,42 @@
   padding: 0.1em 0.35em;
   font-weight: 600;
   font-size: 0.875em;
+}
+
+.mention-popup {
+  position: fixed;
+  z-index: 100;
+  background: var(--popover);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(124, 92, 252, 0.1), 0 2px 8px rgba(0,0,0,0.06);
+  padding: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  min-width: 200px;
+}
+
+.mention-popup .mention-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.mention-popup .mention-item:hover,
+.mention-popup .mention-item.is-selected {
+  background: var(--accent);
+}
+
+.mention-popup .mention-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
