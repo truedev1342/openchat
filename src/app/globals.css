@@ -269,3 +269,42 @@
 .message-content .mention-highlight {
   background: #EDE5FF;
   color: #7C5CFC;
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-weight: 600;
+}
+.message-content a {
+  color: #7C5CFC;
+  text-decoration: none;
+}
+.message-content a:hover {
+  text-decoration: underline;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #DDD6F3;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C4BAE8;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .tiptap-editor {
+    min-height: 36px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  /* Ensure inputs don't zoom on iOS */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
