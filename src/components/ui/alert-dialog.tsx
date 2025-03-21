@@ -25,3 +25,30 @@ function AlertDialogPortal({ ...props }: AlertDialogPrimitive.Portal.Props) {
 function AlertDialogOverlay({
   className,
   ...props
+}: AlertDialogPrimitive.Backdrop.Props) {
+  return (
+    <AlertDialogPrimitive.Backdrop
+      data-slot="alert-dialog-overlay"
+      className={cn(
+        "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function AlertDialogContent({
+  className,
+  size = "default",
+  ...props
+}: AlertDialogPrimitive.Popup.Props & {
+  size?: "default" | "sm"
+}) {
+  return (
+    <AlertDialogPortal>
+      <AlertDialogOverlay />
+      <AlertDialogPrimitive.Popup
+        data-slot="alert-dialog-content"
+        data-size={size}
+        className={cn(
