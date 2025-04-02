@@ -13,3 +13,19 @@ export function getSupabaseClient(): SupabaseClient | null {
     supabaseInstance = createBrowserClient(url, key, {
       auth: {
         persistSession: true,
+        autoRefreshToken: true,
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10,
+        },
+      },
+    })
+  }
+
+  return supabaseInstance
+}
+
+export function isConfigured(): boolean {
+  return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+}
