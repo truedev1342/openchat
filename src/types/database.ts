@@ -26,3 +26,31 @@ export interface WorkspaceMember {
   role: 'owner' | 'admin' | 'member'
   joined_at: string
   workspace?: Workspace
+  profile?: Profile
+}
+
+export interface Channel {
+  id: string
+  workspace_id: string
+  name: string
+  description: string | null
+  topic: string | null
+  is_private: boolean
+  is_archived: boolean
+  created_by: string | null
+  created_at: string
+}
+
+export interface ChannelMember {
+  channel_id: string
+  profile_id: string
+  role: string
+  notification_pref: string
+  joined_at: string
+}
+
+export interface Message {
+  id: string
+  channel_id: string
+  sender_id: string | null
+  content: string
