@@ -1,4 +1,4 @@
-// temporary spinner component
+// temporary message list component
 export function Placeholder() {
   return null;
 }

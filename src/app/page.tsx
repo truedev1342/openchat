@@ -21,3 +21,26 @@ export default function Home() {
       if (!client) {
         router.replace('/setup')
         return
+      }
+
+      const {
+        data: { session },
+      } = await client.auth.getSession()
+      if (session) {
+        router.replace('/workspace')
+      } else {
+        router.replace('/auth')
+      }
+    }
+
+    checkState()
+  }, [router])
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+      <MessageSquare className="h-12 w-12 text-primary" />
+      <h1 className="text-2xl font-bold">OpenChat</h1>
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  )
+}

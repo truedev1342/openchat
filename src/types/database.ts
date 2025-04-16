@@ -54,3 +54,31 @@ export interface Message {
   channel_id: string
   sender_id: string | null
   content: string
+  parent_id: string | null
+  thread_reply_count: number
+  is_edited: boolean
+  is_deleted: boolean
+  metadata: Record<string, unknown> | null
+  created_at: string
+  updated_at: string
+  // Joined
+  sender?: Profile
+}
+
+export interface Reaction {
+  id: string
+  message_id: string
+  profile_id: string
+  emoji: string
+  created_at: string
+}
+
+export interface FileAttachment {
+  id: string
+  message_id: string
+  file_name: string
+  file_url: string
+  file_size: number | null
+  mime_type: string | null
+  created_at: string
+}
