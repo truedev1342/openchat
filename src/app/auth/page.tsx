@@ -100,3 +100,106 @@ function AuthForm() {
       const accessToken = hashParams.get('access_token')
       const refreshToken = hashParams.get('refresh_token')
       if (accessToken && refreshToken) {
+        client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).catch((err) => {
+          console.error('Manual session set from hash failed:', err)
+        })
+        // onAuthStateChange will fire SIGNED_IN after successful setSession
+      }
+    }
+
+    // If no auth event fires quickly, show the normal form
+    // Use longer timeout when we have a code or hash tokens to process (needs network roundtrip)
+    const needsAuthProcessing = !!code || hasHashTokens
+    const timeout = setTimeout(() => {
+      setView((current) => (current === 'loading' ? 'form' : current))
+    }, needsAuthProcessing ? 5000 : 500)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
+  }, [workspaceId, router])
+
+  // Fetch workspace name for invite banner
+  useEffect(() => {
+    if (!workspaceId) return
+    const client = getSupabaseClient()
+    if (!client) return
+
+    client
+      .from('workspaces')
+      .select('name')
+      .eq('id', workspaceId)
+      .single()
+      .then(({ data }) => {
+        if (data) setWorkspaceName(data.name)
+      })
+  }, [workspaceId])
+
+  async function autoJoinWorkspace(userId: string) {
+    if (!workspaceId) return
+    const client = getSupabaseClient()
+    if (!client) return
+
+    try {
+      const { data: existing } = await client
+        .from('workspace_members')
+        .select('profile_id')
+        .eq('workspace_id', workspaceId)
+        .eq('profile_id', userId)
+        .limit(1)
+
+      if (existing && existing.length > 0) return
+
+      await client.from('workspace_members').insert({
+        workspace_id: workspaceId,
+        profile_id: userId,
+        role: 'member',
+      })
+
+      const { data: channels } = await client
+        .from('channels')
+        .select('id')
+        .eq('workspace_id', workspaceId)
+        .eq('is_private', false)
+
+      if (channels) {
+        for (const ch of channels) {
+          await client
+            .from('channel_members')
+            .insert({ channel_id: ch.id, profile_id: userId })
+            .then(() => {})
+        }
+      }
+    } catch (err) {
+      console.error('Auto-join failed:', err)
+    }
+  }
+
+  // ---- Complete profile (invite flow) ----
+  async function handleCompleteProfile(e: React.FormEvent) {
+    e.preventDefault()
+    const client = getSupabaseClient()
+    if (!client) return
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Set password and display name
+      const { error: updateError } = await client.auth.updateUser({
+        password,
+        data: { display_name: displayName || email.split('@')[0] },
+      })
+      if (updateError) throw updateError
+
+      // Update profile table too
