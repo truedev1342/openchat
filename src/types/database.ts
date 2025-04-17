@@ -82,3 +82,31 @@ export interface FileAttachment {
   mime_type: string | null
   created_at: string
 }
+
+export interface Pin {
+  id: string
+  channel_id: string
+  message_id: string
+  pinned_by: string
+  created_at: string
+}
+
+export interface ReadReceipt {
+  profile_id: string
+  channel_id: string
+  last_read_at: string
+}
+
+export interface WorkspaceSettings {
+  workspace_id: string
+  livekit_url: string | null
+  livekit_api_key: string | null
+  livekit_api_secret: string | null
+  calls_enabled: boolean
+}
+
+export interface ActiveCall {
+  id: string
+  channel_id: string
+  workspace_id: string
+  type: 'huddle' | 'video_call'
