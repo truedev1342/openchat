@@ -19,3 +19,25 @@ export async function POST(request: NextRequest) {
       { status: 403 }
     )
   }
+
+  try {
+    const body = await request.json()
+    const envPath = join(process.cwd(), '.env.local')
+
+    // If only adding service_role key to existing config
+    if (body.serviceRoleKey && !body.supabaseUrl) {
+      let envContent = ''
+      if (existsSync(envPath)) {
+        envContent = readFileSync(envPath, 'utf-8')
+      }
+
+      // Remove existing service role key line if present
+      envContent = envContent
+        .split('\n')
+        .filter((line) => !line.startsWith('SUPABASE_SERVICE_ROLE_KEY='))
+        .join('\n')
+
+      // Append service role key
+      envContent = envContent.trimEnd() + '\nSUPABASE_SERVICE_ROLE_KEY=' + body.serviceRoleKey + '\n'
+      writeFileSync(envPath, envContent, 'utf-8')
+

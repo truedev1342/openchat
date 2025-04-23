@@ -203,3 +203,105 @@ function AuthForm() {
       if (updateError) throw updateError
 
       // Update profile table too
+      const { data: { user } } = await client.auth.getUser()
+      if (user) {
+        await client
+          .from('profiles')
+          .update({ display_name: displayName || email.split('@')[0] })
+          .eq('id', user.id)
+
+        await autoJoinWorkspace(user.id)
+      }
+
+      router.push('/workspace')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to complete profile')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ---- Forgot password ----
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault()
+    const client = getSupabaseClient()
+    if (!client || !email) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { error } = await client.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?recovery=true`,
+      })
+      if (error) throw error
+      setView('reset-email-sent')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send reset email')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ---- Reset password (from email link) ----
+  async function handleResetPassword(e: React.FormEvent) {
+    e.preventDefault()
+    const client = getSupabaseClient()
+    if (!client) return
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { error } = await client.auth.updateUser({ password })
+      if (error) throw error
+      router.push('/workspace')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reset password')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ---- Complete invite (server-side password set + workspace join) ----
+  async function handleInviteComplete(e: React.FormEvent) {
+    e.preventDefault()
+    const client = getSupabaseClient()
+    if (!client || !workspaceId) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Use server endpoint to set password via admin API (no email confirmation needed)
+      const res = await fetch('/api/invite/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          displayName: displayName || email.split('@')[0],
+          workspaceId,
+        }),
+      })
+
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Failed to complete invite')
+
+      // Now sign in with the password we just set
+      const { error: signInError } = await client.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (signInError) throw signInError
+
+      router.push('/workspace')
