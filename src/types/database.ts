@@ -110,3 +110,31 @@ export interface ActiveCall {
   channel_id: string
   workspace_id: string
   type: 'huddle' | 'video_call'
+  livekit_room_name: string
+  started_by: string
+  started_at: string
+  ended_at: string | null
+}
+
+export interface CallParticipant {
+  call_id: string
+  profile_id: string
+  joined_at: string
+  left_at: string | null
+  is_muted: boolean
+  is_camera_on: boolean
+  is_sharing_screen: boolean
+}
+
+export interface IncomingWebhook {
+  id: string
+  workspace_id: string
+  channel_id: string
+  name: string
+  token: string
+  avatar_url: string | null
+  display_name: string | null
+  is_active: boolean
+  created_by: string
+  created_at: string
+}
