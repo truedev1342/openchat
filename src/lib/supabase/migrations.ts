@@ -67,3 +67,73 @@ export const migrations: string[] = [
     is_edited boolean DEFAULT false,
     is_deleted boolean DEFAULT false,
     metadata jsonb,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+  );`,
+
+  // 007 - Reactions
+  `CREATE TABLE IF NOT EXISTS reactions (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    message_id uuid NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    profile_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    emoji text NOT NULL,
+    created_at timestamptz DEFAULT now(),
+    UNIQUE(message_id, profile_id, emoji)
+  );`,
+
+  // 008 - File Attachments
+  `CREATE TABLE IF NOT EXISTS file_attachments (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    message_id uuid NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    file_name text NOT NULL,
+    file_url text NOT NULL,
+    file_size bigint,
+    mime_type text,
+    created_at timestamptz DEFAULT now()
+  );`,
+
+  // 009 - Pins
+  `CREATE TABLE IF NOT EXISTS pins (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    channel_id uuid NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+    message_id uuid NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    pinned_by uuid NOT NULL REFERENCES profiles(id),
+    created_at timestamptz DEFAULT now(),
+    UNIQUE(channel_id, message_id)
+  );`,
+
+  // 010 - Read Receipts
+  `CREATE TABLE IF NOT EXISTS read_receipts (
+    profile_id uuid REFERENCES profiles(id) ON DELETE CASCADE,
+    channel_id uuid REFERENCES channels(id) ON DELETE CASCADE,
+    last_read_at timestamptz DEFAULT now(),
+    PRIMARY KEY (profile_id, channel_id)
+  );`,
+
+  // 025 - Workspace Settings
+  `CREATE TABLE IF NOT EXISTS workspace_settings (
+    workspace_id uuid PRIMARY KEY REFERENCES workspaces(id) ON DELETE CASCADE,
+    livekit_url text,
+    livekit_api_key text,
+    livekit_api_secret text,
+    calls_enabled boolean DEFAULT false
+  );`,
+
+  // 026 - Active Calls
+  `CREATE TABLE IF NOT EXISTS active_calls (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    channel_id uuid NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+    workspace_id uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    type text NOT NULL DEFAULT 'huddle',
+    livekit_room_name text NOT NULL,
+    started_by uuid NOT NULL REFERENCES profiles(id),
+    started_at timestamptz DEFAULT now(),
+    ended_at timestamptz
+  );`,
+
+  // 027 - Call Participants
+  `CREATE TABLE IF NOT EXISTS call_participants (
+    call_id uuid REFERENCES active_calls(id) ON DELETE CASCADE,
+    profile_id uuid REFERENCES profiles(id) ON DELETE CASCADE,
+    joined_at timestamptz DEFAULT now(),
+    left_at timestamptz,
