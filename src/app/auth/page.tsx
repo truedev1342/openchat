@@ -305,3 +305,106 @@ function AuthForm() {
       if (signInError) throw signInError
 
       router.push('/workspace')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to join workspace')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ---- Normal sign in / sign up ----
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const client = getSupabaseClient()
+    if (!client) return
+
+    isManualSubmit.current = true
+    setLoading(true)
+    setError(null)
+
+    try {
+      if (mode === 'signup') {
+        const { data, error: signUpError } = await client.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { display_name: displayName || email.split('@')[0] },
+          },
+        })
+
+        if (signUpError) throw signUpError
+
+        if (!data.session) {
+          // For invited users, their email is already confirmed via the invite link.
+          // signUp returns no session because the user already exists — try signing in instead.
+          if (workspaceId) {
+            const { data: signInData, error: signInError } =
+              await client.auth.signInWithPassword({ email, password })
+            if (!signInError && signInData.user) {
+              await autoJoinWorkspace(signInData.user.id)
+              router.push('/workspace')
+              return
+            }
+          }
+          setView('email-confirmation')
+          setLoading(false)
+          isManualSubmit.current = false
+          return
+        }
+
+        if (data.session.user) {
+          await autoJoinWorkspace(data.session.user.id)
+        }
+      } else {
+        const { data, error: signInError } = await client.auth.signInWithPassword({ email, password })
+        if (signInError) throw signInError
+
+        if (data.user) {
+          await autoJoinWorkspace(data.user.id)
+        }
+      }
+
+      router.push('/workspace')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Authentication failed')
+    } finally {
+      setLoading(false)
+      isManualSubmit.current = false
+    }
+  }
+
+  // ---- Error banner ----
+  const errorBanner = error && (
+    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+      <p className="text-sm text-destructive">{error}</p>
+    </div>
+  )
+
+  // ---- Invite banner ----
+  const inviteBanner = workspaceId && (
+    <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-md flex items-center gap-2">
+      <Users className="h-5 w-5 text-primary shrink-0" />
+      <p className="text-sm">
+        You&apos;ve been invited to join{' '}
+        <strong>{workspaceName || 'a workspace'}</strong>!
+      </p>
+    </div>
+  )
+
+  // ===== LOADING =====
+  if (view === 'loading') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  // ===== COMPLETE PROFILE (invite) =====
+  if (view === 'complete-profile') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-sm w-full">
+          <CardHeader className="text-center">
+            <Users className="mx-auto h-10 w-10 text-primary mb-2" />
+            <CardTitle className="text-2xl">Complete your profile</CardTitle>
