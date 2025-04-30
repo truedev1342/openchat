@@ -41,3 +41,24 @@ export async function POST(request: NextRequest) {
       envContent = envContent.trimEnd() + '\nSUPABASE_SERVICE_ROLE_KEY=' + body.serviceRoleKey + '\n'
       writeFileSync(envPath, envContent, 'utf-8')
 
+      return NextResponse.json({
+        success: true,
+        message: 'Service role key added. Please restart the dev server.',
+        needsRestart: true,
+      })
+    }
+
+    // Full setup
+    const { supabaseUrl, anonKey, serviceRoleKey } = body
+
+    if (!supabaseUrl || !anonKey) {
+      return NextResponse.json({ error: 'Missing supabaseUrl or anonKey' }, { status: 400 })
+    }
+
+    try {
+      new URL(supabaseUrl)
+    } catch {
+      return NextResponse.json({ error: 'Invalid Supabase URL' }, { status: 400 })
+    }
+
+    let envContent = `# OpenChat Supabase Configuration
