@@ -408,3 +408,105 @@ function AuthForm() {
           <CardHeader className="text-center">
             <Users className="mx-auto h-10 w-10 text-primary mb-2" />
             <CardTitle className="text-2xl">Complete your profile</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Set your name and password to join{' '}
+              <strong>{workspaceName || 'the workspace'}</strong>
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCompleteProfile} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email-display">Email</Label>
+                <Input
+                  id="email-display"
+                  type="email"
+                  value={email}
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name">Display Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Your name"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Choose a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              {errorBanner}
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Join Workspace'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // ===== RESET PASSWORD (from email link) =====
+  if (view === 'reset-password') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-sm w-full">
+          <CardHeader className="text-center">
+            <KeyRound className="mx-auto h-10 w-10 text-primary mb-2" />
+            <CardTitle className="text-2xl">Reset your password</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Enter your new password below.</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  placeholder="New password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                <Input
+                  id="confirm-new-password"
+                  type="password"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
