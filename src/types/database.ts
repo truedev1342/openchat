@@ -138,3 +138,31 @@ export interface IncomingWebhook {
   created_by: string
   created_at: string
 }
+
+export interface OutgoingWebhook {
+  id: string
+  workspace_id: string
+  name: string
+  url: string
+  signing_secret: string
+  events: string[]
+  channel_filter: string[] | null
+  is_active: boolean
+  retry_count: number
+  created_by: string
+  created_at: string
+}
+
+export interface WebhookDeliveryLog {
+  id: string
+  webhook_id: string
+  event_type: string
+  status_code: number | null
+  response_body: string | null
+  latency_ms: number | null
+  attempt: number
+  error: string | null
+  created_at: string
+}
+
+export interface Bot {

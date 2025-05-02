@@ -137,3 +137,72 @@ export const migrations: string[] = [
     profile_id uuid REFERENCES profiles(id) ON DELETE CASCADE,
     joined_at timestamptz DEFAULT now(),
     left_at timestamptz,
+    is_muted boolean DEFAULT false,
+    is_camera_on boolean DEFAULT false,
+    is_sharing_screen boolean DEFAULT false,
+    PRIMARY KEY (call_id, profile_id)
+  );`,
+
+  // 028 - Incoming Webhooks
+  `CREATE TABLE IF NOT EXISTS incoming_webhooks (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    channel_id uuid NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+    name text NOT NULL,
+    token text UNIQUE NOT NULL DEFAULT encode(gen_random_bytes(32), 'hex'),
+    avatar_url text,
+    display_name text,
+    is_active boolean DEFAULT true,
+    created_by uuid NOT NULL REFERENCES profiles(id),
+    created_at timestamptz DEFAULT now()
+  );`,
+
+  // 029 - Outgoing Webhooks
+  `CREATE TABLE IF NOT EXISTS outgoing_webhooks (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    name text NOT NULL,
+    url text NOT NULL,
+    signing_secret text NOT NULL DEFAULT encode(gen_random_bytes(32), 'hex'),
+    events text[] NOT NULL DEFAULT '{}',
+    channel_filter uuid[],
+    is_active boolean DEFAULT true,
+    retry_count int DEFAULT 3,
+    created_by uuid NOT NULL REFERENCES profiles(id),
+    created_at timestamptz DEFAULT now()
+  );`,
+
+  // 030 - Webhook Delivery Logs
+  `CREATE TABLE IF NOT EXISTS webhook_delivery_logs (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    webhook_id uuid NOT NULL REFERENCES outgoing_webhooks(id) ON DELETE CASCADE,
+    event_type text NOT NULL,
+    status_code int,
+    response_body text,
+    latency_ms int,
+    attempt int DEFAULT 1,
+    error text,
+    created_at timestamptz DEFAULT now()
+  );`,
+
+  // 031 - Bots
+  `CREATE TABLE IF NOT EXISTS bots (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    name text NOT NULL,
+    display_name text NOT NULL,
+    avatar_url text,
+    description text,
+    bot_token text UNIQUE NOT NULL DEFAULT encode(gen_random_bytes(32), 'hex'),
+    scopes text[] DEFAULT '{}',
+    is_active boolean DEFAULT true,
+    created_by uuid NOT NULL REFERENCES profiles(id),
+    created_at timestamptz DEFAULT now()
+  );`,
+
+  // 032 - Bot Channel Memberships
+  `CREATE TABLE IF NOT EXISTS bot_channel_memberships (
+    bot_id uuid REFERENCES bots(id) ON DELETE CASCADE,
+    channel_id uuid REFERENCES channels(id) ON DELETE CASCADE,
+    added_by uuid REFERENCES profiles(id),
+    added_at timestamptz DEFAULT now(),
