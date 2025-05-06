@@ -166,3 +166,31 @@ export interface WebhookDeliveryLog {
 }
 
 export interface Bot {
+  id: string
+  workspace_id: string
+  name: string
+  display_name: string
+  avatar_url: string | null
+  description: string | null
+  bot_token: string
+  scopes: string[]
+  is_active: boolean
+  created_by: string
+  created_at: string
+}
+
+export interface SlashCommand {
+  id: string
+  workspace_id: string
+  command: string
+  description: string
+  usage_hint: string | null
+  type: 'builtin' | 'custom' | 'bot'
+  handler_url: string | null
+  bot_id: string | null
+  is_active: boolean
+}
+
+export interface Reminder {
+  id: string
+  workspace_id: string
