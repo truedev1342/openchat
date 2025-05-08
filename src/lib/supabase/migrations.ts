@@ -206,3 +206,73 @@ export const migrations: string[] = [
     channel_id uuid REFERENCES channels(id) ON DELETE CASCADE,
     added_by uuid REFERENCES profiles(id),
     added_at timestamptz DEFAULT now(),
+    PRIMARY KEY (bot_id, channel_id)
+  );`,
+
+  // 033 - Bot Event Subscriptions
+  `CREATE TABLE IF NOT EXISTS bot_event_subscriptions (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    bot_id uuid NOT NULL REFERENCES bots(id) ON DELETE CASCADE,
+    event_type text NOT NULL,
+    callback_url text NOT NULL,
+    filter jsonb DEFAULT '{}',
+    is_active boolean DEFAULT true
+  );`,
+
+  // 034 - Slash Commands
+  `CREATE TABLE IF NOT EXISTS slash_commands (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    command text NOT NULL,
+    description text NOT NULL DEFAULT '',
+    usage_hint text,
+    type text NOT NULL DEFAULT 'builtin',
+    handler_url text,
+    bot_id uuid REFERENCES bots(id) ON DELETE SET NULL,
+    is_active boolean DEFAULT true
+  );`,
+
+  // 035 - Reminders
+  `CREATE TABLE IF NOT EXISTS reminders (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    created_by uuid NOT NULL REFERENCES profiles(id),
+    target_user_id uuid NOT NULL REFERENCES profiles(id),
+    channel_id uuid NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+    message text NOT NULL,
+    remind_at timestamptz NOT NULL,
+    is_delivered boolean DEFAULT false,
+    created_at timestamptz DEFAULT now()
+  );`,
+
+  // 036 - Shared Channel Links
+  `CREATE TABLE IF NOT EXISTS shared_channel_links (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    local_channel_id uuid NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+    remote_workspace_url text NOT NULL,
+    remote_channel_id uuid NOT NULL,
+    remote_channel_name text,
+    signing_key_local text NOT NULL DEFAULT encode(gen_random_bytes(32), 'hex'),
+    signing_key_remote text NOT NULL,
+    sync_endpoint_url text NOT NULL,
+    status text DEFAULT 'active',
+    last_synced_at timestamptz,
+    created_at timestamptz DEFAULT now()
+  );`,
+
+  // 037 - Remote Profiles
+  `CREATE TABLE IF NOT EXISTS remote_profiles (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    remote_workspace_url text NOT NULL,
+    remote_user_id text NOT NULL,
+    display_name text,
+    avatar_url text,
+    workspace_name text,
+    last_updated_at timestamptz DEFAULT now(),
+    UNIQUE(remote_workspace_url, remote_user_id)
+  );`,
+
+  // 038 - Scheduled Messages
+  `CREATE TABLE IF NOT EXISTS scheduled_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,

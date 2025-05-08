@@ -510,3 +510,106 @@ function AuthForm() {
                   placeholder="Confirm new password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              {errorBanner}
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Set New Password'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // ===== FORGOT PASSWORD =====
+  if (view === 'forgot-password') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-sm w-full">
+          <CardHeader className="text-center">
+            <Mail className="mx-auto h-10 w-10 text-primary mb-2" />
+            <CardTitle className="text-2xl">Forgot password?</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Enter your email and we&apos;ll send you a reset link.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Email</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+
+              {errorBanner}
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send Reset Link'}
+              </Button>
+
+              <Button
+                type="button"
+                variant="link"
+                className="w-full"
+                onClick={() => {
+                  setView('form')
+                  setError(null)
+                }}
+              >
+                <ArrowLeft className="h-3 w-3 mr-1" />
+                Back to Sign In
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // ===== RESET EMAIL SENT =====
+  if (view === 'reset-email-sent') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full space-y-6 text-center">
+          <Mail className="mx-auto h-12 w-12 text-primary" />
+          <h2 className="text-2xl font-bold">Check your email</h2>
+          <p className="text-muted-foreground">
+            We sent a password reset link to <strong>{email}</strong>.
+            Click the link in the email, then you&apos;ll be able to set a new password.
+          </p>
+          <Button
+            onClick={() => {
+              setView('form')
+              setMode('signin')
+              setError(null)
+            }}
+          >
+            Back to Sign In
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // ===== EMAIL CONFIRMATION (signup) =====
+  if (view === 'email-confirmation') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full space-y-6 text-center">
+          <Mail className="mx-auto h-12 w-12 text-primary" />
+          <h2 className="text-2xl font-bold">Check your email</h2>
+          <p className="text-muted-foreground">
+            We sent a confirmation link to <strong>{email}</strong>. Click the link to activate your
