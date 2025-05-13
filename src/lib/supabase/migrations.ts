@@ -276,3 +276,72 @@ export const migrations: string[] = [
   `CREATE TABLE IF NOT EXISTS scheduled_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    channel_id UUID REFERENCES channels(id) ON DELETE CASCADE,
+    workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    scheduled_for TIMESTAMPTZ NOT NULL,
+    sent BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT now()
+  );`,
+
+  // 039 - Saved Items (Bookmarks)
+  `CREATE TABLE IF NOT EXISTS saved_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    message_id UUID REFERENCES messages(id) ON DELETE CASCADE,
+    workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
+    note TEXT,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(user_id, message_id)
+  );`,
+
+  // RLS Policies + Triggers
+  `-- Nuclear cleanup: drop ALL existing policies
+  DO $cleanup$
+  DECLARE
+    r RECORD;
+  BEGIN
+    FOR r IN (
+      SELECT schemaname, tablename, policyname
+      FROM pg_policies
+      WHERE schemaname = 'public'
+    )
+    LOOP
+      EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', r.policyname, r.schemaname, r.tablename);
+    END LOOP;
+  END
+  $cleanup$;
+
+  -- Enable RLS on all tables
+  ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE workspace_members ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE channels ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE channel_members ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE reactions ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE file_attachments ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE pins ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE read_receipts ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE workspace_settings ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE active_calls ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE call_participants ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE incoming_webhooks ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE outgoing_webhooks ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE webhook_delivery_logs ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE bots ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE bot_channel_memberships ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE bot_event_subscriptions ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE slash_commands ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE reminders ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE shared_channel_links ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE remote_profiles ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE scheduled_messages ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE saved_items ENABLE ROW LEVEL SECURITY;
+
+  -- SECURITY DEFINER helpers (bypass RLS to prevent infinite recursion)
+  CREATE OR REPLACE FUNCTION get_my_workspace_ids()
+  RETURNS SETOF uuid LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public
+  AS $fn$ SELECT workspace_id FROM workspace_members WHERE profile_id = auth.uid(); $fn$;
+
+  CREATE OR REPLACE FUNCTION get_my_admin_workspace_ids()
