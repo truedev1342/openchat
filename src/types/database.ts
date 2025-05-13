@@ -194,3 +194,32 @@ export interface SlashCommand {
 export interface Reminder {
   id: string
   workspace_id: string
+  created_by: string
+  target_user_id: string
+  channel_id: string
+  message: string
+  remind_at: string
+  is_delivered: boolean
+  created_at: string
+}
+
+export interface ScheduledMessage {
+  id: string
+  user_id: string
+  channel_id: string
+  workspace_id: string
+  content: string
+  scheduled_for: string
+  sent: boolean
+  created_at: string
+}
+
+export interface SavedItem {
+  id: string
+  user_id: string
+  message_id: string
+  workspace_id: string
+  note: string | null
+  created_at: string
+  message?: Message
+}
