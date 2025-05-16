@@ -345,3 +345,73 @@ export const migrations: string[] = [
   AS $fn$ SELECT workspace_id FROM workspace_members WHERE profile_id = auth.uid(); $fn$;
 
   CREATE OR REPLACE FUNCTION get_my_admin_workspace_ids()
+  RETURNS SETOF uuid LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public
+  AS $fn$ SELECT workspace_id FROM workspace_members WHERE profile_id = auth.uid() AND role IN ('owner', 'admin'); $fn$;
+
+  CREATE OR REPLACE FUNCTION get_my_channel_ids()
+  RETURNS SETOF uuid LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public
+  AS $fn$ SELECT channel_id FROM channel_members WHERE profile_id = auth.uid(); $fn$;
+
+  -- Profiles (only visible to co-workers in shared workspaces, or self)
+  CREATE POLICY "profiles_select" ON profiles FOR SELECT USING (
+    id = auth.uid()
+    OR id IN (
+      SELECT wm2.profile_id FROM workspace_members wm1
+      JOIN workspace_members wm2 ON wm1.workspace_id = wm2.workspace_id
+      WHERE wm1.profile_id = auth.uid()
+    )
+  );
+  CREATE POLICY "profiles_update" ON profiles FOR UPDATE USING (auth.uid() = id);
+  CREATE POLICY "profiles_insert" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+
+  -- Workspaces
+  CREATE POLICY "workspaces_select" ON workspaces FOR SELECT USING (id IN (SELECT get_my_workspace_ids()));
+  CREATE POLICY "workspaces_insert" ON workspaces FOR INSERT WITH CHECK (true);
+  CREATE POLICY "workspaces_update" ON workspaces FOR UPDATE USING (id IN (SELECT get_my_admin_workspace_ids()));
+
+  -- Workspace Members (insert restricted to self + workspace must exist)
+  CREATE POLICY "wm_select" ON workspace_members FOR SELECT USING (workspace_id IN (SELECT get_my_workspace_ids()));
+  CREATE POLICY "wm_insert" ON workspace_members FOR INSERT WITH CHECK (profile_id = auth.uid());
+  CREATE POLICY "wm_delete" ON workspace_members FOR DELETE USING (workspace_id IN (SELECT get_my_admin_workspace_ids()) OR profile_id = auth.uid());
+
+  -- Channels
+  CREATE POLICY "channels_select" ON channels FOR SELECT USING (workspace_id IN (SELECT get_my_workspace_ids()));
+  CREATE POLICY "channels_insert" ON channels FOR INSERT WITH CHECK (workspace_id IN (SELECT get_my_workspace_ids()));
+  CREATE POLICY "channels_update" ON channels FOR UPDATE USING (workspace_id IN (SELECT get_my_workspace_ids()));
+
+  -- Channel Members (insert restricted to own workspace channels)
+  CREATE POLICY "cm_select" ON channel_members FOR SELECT USING (channel_id IN (SELECT get_my_channel_ids()) OR profile_id = auth.uid());
+  CREATE POLICY "cm_insert" ON channel_members FOR INSERT WITH CHECK (
+    channel_id IN (SELECT id FROM channels WHERE workspace_id IN (SELECT get_my_workspace_ids()))
+    AND (
+      profile_id = auth.uid()
+      OR channel_id IN (SELECT id FROM channels WHERE created_by = auth.uid())
+    )
+  );
+  CREATE POLICY "cm_delete" ON channel_members FOR DELETE USING (profile_id = auth.uid() OR channel_id IN (SELECT c.id FROM channels c WHERE c.workspace_id IN (SELECT get_my_admin_workspace_ids())));
+
+  -- Messages
+  CREATE POLICY "msg_select" ON messages FOR SELECT USING (channel_id IN (SELECT get_my_channel_ids()));
+  CREATE POLICY "msg_insert" ON messages FOR INSERT WITH CHECK (channel_id IN (SELECT get_my_channel_ids()));
+  CREATE POLICY "msg_update" ON messages FOR UPDATE USING (sender_id = auth.uid());
+  CREATE POLICY "msg_delete" ON messages FOR DELETE USING (sender_id = auth.uid());
+
+  -- Reactions
+  CREATE POLICY "react_select" ON reactions FOR SELECT USING (message_id IN (SELECT id FROM messages WHERE channel_id IN (SELECT get_my_channel_ids())));
+  CREATE POLICY "react_insert" ON reactions FOR INSERT WITH CHECK (profile_id = auth.uid());
+  CREATE POLICY "react_delete" ON reactions FOR DELETE USING (profile_id = auth.uid());
+
+  -- File Attachments (insert restricted to messages in own channels)
+  CREATE POLICY "fa_select" ON file_attachments FOR SELECT USING (message_id IN (SELECT id FROM messages WHERE channel_id IN (SELECT get_my_channel_ids())));
+  CREATE POLICY "fa_insert" ON file_attachments FOR INSERT WITH CHECK (message_id IN (SELECT id FROM messages WHERE channel_id IN (SELECT get_my_channel_ids())));
+
+  -- Pins
+  CREATE POLICY "pins_select" ON pins FOR SELECT USING (channel_id IN (SELECT get_my_channel_ids()));
+  CREATE POLICY "pins_insert" ON pins FOR INSERT WITH CHECK (channel_id IN (SELECT get_my_channel_ids()));
+  CREATE POLICY "pins_delete" ON pins FOR DELETE USING (pinned_by = auth.uid());
+
+  -- Read Receipts
+  CREATE POLICY "rr_select" ON read_receipts FOR SELECT USING (profile_id = auth.uid());
+  CREATE POLICY "rr_upsert" ON read_receipts FOR INSERT WITH CHECK (profile_id = auth.uid());
+  CREATE POLICY "rr_update" ON read_receipts FOR UPDATE USING (profile_id = auth.uid());
+
