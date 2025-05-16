@@ -53,3 +53,30 @@ async function executeSQL(
 
   // Some SQL commands return empty responses — handle gracefully
   const text = await response.text()
+  if (!text) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
+}
+
+function extractTableName(sql: string): string {
+  const match = sql.match(/CREATE TABLE IF NOT EXISTS (\w+)/)
+  if (match) return `Creating ${match[1]}`
+  if (sql.includes('ENABLE ROW LEVEL SECURITY')) return 'Setting up RLS policies & triggers'
+  if (sql.includes('ALTER PUBLICATION')) return 'Enabling Realtime'
+  if (sql.includes('DELETE FROM auth.users')) return 'Cleaning up orphaned users'
+  return 'Running migration'
+}
+
+export async function provision(
+  supabaseURL: string,
+  accessToken: string,
+  onProgress: ProgressCallback
+): Promise<void> {
+  const cleanToken = accessToken.trim()
+  const ref = extractProjectRef(supabaseURL)
+
+  if (!ref) throw new Error('Invalid Supabase URL. It should look like https://xxxxx.supabase.co')
+  if (!validateToken(cleanToken)) {

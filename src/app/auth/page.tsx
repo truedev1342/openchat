@@ -613,3 +613,105 @@ function AuthForm() {
           <h2 className="text-2xl font-bold">Check your email</h2>
           <p className="text-muted-foreground">
             We sent a confirmation link to <strong>{email}</strong>. Click the link to activate your
+            account, then come back and sign in.
+          </p>
+          <div className="space-y-3">
+            <Button
+              onClick={() => {
+                setView('form')
+                setMode('signin')
+                setError(null)
+              }}
+            >
+              I&apos;ve confirmed, Sign In
+            </Button>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>or</p>
+              <p>To skip email confirmation:</p>
+              <p>Supabase Dashboard &rsaquo; Authentication &rsaquo; Providers &rsaquo; Email &rsaquo; Disable &quot;Confirm email&quot;</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ===== INVITE FLOW (email from URL, no confirmation needed) =====
+  if (isInviteFlow && view === 'form' && mode !== 'signin') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-sm w-full">
+          <CardHeader className="text-center">
+            <Users className="mx-auto h-10 w-10 text-primary mb-2" />
+            <CardTitle className="text-2xl">Join {workspaceName || 'Workspace'}</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Set up your account to get started
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleInviteComplete} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="invite-email">Email</Label>
+                <Input
+                  id="invite-email"
+                  type="email"
+                  value={email}
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="invite-name">Display Name</Label>
+                <Input
+                  id="invite-name"
+                  placeholder="Your name"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="invite-password">Password</Label>
+                <Input
+                  id="invite-password"
+                  type="password"
+                  placeholder="Choose a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              {errorBanner}
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Join Workspace'}
+              </Button>
+
+              <Button
+                type="button"
+                variant="link"
+                className="w-full"
+                onClick={() => {
+                  setMode('signin')
+                  setError(null)
+                }}
+              >
+                Already have an account? Sign In
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // ===== MAIN SIGN IN / SIGN UP FORM =====
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="max-w-sm w-full">
+        <CardHeader className="text-center">
