@@ -715,3 +715,106 @@ function AuthForm() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="max-w-sm w-full">
         <CardHeader className="text-center">
+          <MessageSquare className="mx-auto h-10 w-10 text-primary mb-2" />
+          <CardTitle className="text-2xl">OpenChat</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {inviteBanner}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'signup' && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Display Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Your name"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                {mode === 'signin' && (
+                  <button
+                    type="button"
+                    className="text-xs text-primary hover:underline"
+                    onClick={() => {
+                      setView('forgot-password')
+                      setError(null)
+                    }}
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+
+            {errorBanner}
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : mode === 'signin' ? (
+                workspaceId ? 'Sign In & Join' : 'Sign In'
+              ) : (
+                workspaceId ? 'Create Account & Join' : 'Create Account'
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="link"
+              className="w-full"
+              onClick={() => {
+                setMode(mode === 'signin' ? 'signup' : 'signin')
+                setError(null)
+              }}
+            >
+              {mode === 'signin'
+                ? "Don't have an account? Sign Up"
+                : 'Already have an account? Sign In'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      }
+    >
+      <AuthForm />
+    </Suspense>
+  )
+}
