@@ -80,3 +80,31 @@ export async function provision(
 
   if (!ref) throw new Error('Invalid Supabase URL. It should look like https://xxxxx.supabase.co')
   if (!validateToken(cleanToken)) {
+    throw new Error(
+      "Invalid token format. The Personal Access Token should start with 'sbp_'. Generate one at supabase.com/dashboard/account/tokens"
+    )
+  }
+
+  // Step 0: Test connection
+  onProgress('Testing connection...')
+  try {
+    await executeSQL(ref, cleanToken, 'SELECT 1;', true)
+  } catch (error) {
+    throw new Error(
+      `Connection test failed: ${error instanceof Error ? error.message : 'Unknown error'}. Verify your Personal Access Token.`
+    )
+  }
+
+  // Run all migrations
+  const total = migrations.length
+  const errors: string[] = []
+  for (let i = 0; i < total; i++) {
+    const sql = migrations[i]
+    const step = i + 1
+    const label = extractTableName(sql)
+    onProgress(`(${step}/${total}) ${label}...`)
+    try {
+      await executeSQL(ref, cleanToken, sql, false)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error(`[provision] Migration ${step}/${total} failed (${label}):`, msg)
