@@ -415,3 +415,72 @@ export const migrations: string[] = [
   CREATE POLICY "rr_upsert" ON read_receipts FOR INSERT WITH CHECK (profile_id = auth.uid());
   CREATE POLICY "rr_update" ON read_receipts FOR UPDATE USING (profile_id = auth.uid());
 
+  -- Workspace Settings (admin-only insert, all members can read non-secret fields)
+  CREATE POLICY "ws_select" ON workspace_settings FOR SELECT USING (workspace_id IN (SELECT get_my_workspace_ids()));
+  CREATE POLICY "ws_insert" ON workspace_settings FOR INSERT WITH CHECK (workspace_id IN (SELECT get_my_admin_workspace_ids()));
+  CREATE POLICY "ws_update" ON workspace_settings FOR UPDATE USING (workspace_id IN (SELECT get_my_admin_workspace_ids()));
+
+  -- Active Calls
+  CREATE POLICY "ac_select" ON active_calls FOR SELECT USING (workspace_id IN (SELECT get_my_workspace_ids()));
+  CREATE POLICY "ac_insert" ON active_calls FOR INSERT WITH CHECK (workspace_id IN (SELECT get_my_workspace_ids()));
+  CREATE POLICY "ac_update" ON active_calls FOR UPDATE USING (workspace_id IN (SELECT get_my_workspace_ids()));
+
+  -- Call Participants (scoped to calls in own workspace)
+  CREATE POLICY "cp_select" ON call_participants FOR SELECT USING (call_id IN (SELECT id FROM active_calls WHERE workspace_id IN (SELECT get_my_workspace_ids())));
+  CREATE POLICY "cp_insert" ON call_participants FOR INSERT WITH CHECK (profile_id = auth.uid());
+  CREATE POLICY "cp_update" ON call_participants FOR UPDATE USING (profile_id = auth.uid());
+
+  -- Webhooks (admin-only management)
+  CREATE POLICY "iw_select" ON incoming_webhooks FOR SELECT USING (workspace_id IN (SELECT get_my_workspace_ids()));
+  CREATE POLICY "iw_insert" ON incoming_webhooks FOR INSERT WITH CHECK (workspace_id IN (SELECT get_my_admin_workspace_ids()));
+  CREATE POLICY "ow_select" ON outgoing_webhooks FOR SELECT USING (workspace_id IN (SELECT get_my_workspace_ids()));
+  CREATE POLICY "ow_insert" ON outgoing_webhooks FOR INSERT WITH CHECK (workspace_id IN (SELECT get_my_admin_workspace_ids()));
+  CREATE POLICY "wdl_select" ON webhook_delivery_logs FOR SELECT USING (webhook_id IN (SELECT id FROM outgoing_webhooks WHERE workspace_id IN (SELECT get_my_workspace_ids())));
+
+  -- Bots
+  CREATE POLICY "bots_select" ON bots FOR SELECT USING (workspace_id IN (SELECT get_my_workspace_ids()));
+  CREATE POLICY "bots_insert" ON bots FOR INSERT WITH CHECK (workspace_id IN (SELECT get_my_admin_workspace_ids()));
+  CREATE POLICY "bcm_select" ON bot_channel_memberships FOR SELECT USING (bot_id IN (SELECT id FROM bots WHERE workspace_id IN (SELECT get_my_workspace_ids())));
+  CREATE POLICY "bcm_insert" ON bot_channel_memberships FOR INSERT WITH CHECK (bot_id IN (SELECT id FROM bots WHERE workspace_id IN (SELECT get_my_admin_workspace_ids())));
+  CREATE POLICY "bes_select" ON bot_event_subscriptions FOR SELECT USING (bot_id IN (SELECT id FROM bots WHERE workspace_id IN (SELECT get_my_workspace_ids())));
+  CREATE POLICY "bes_insert" ON bot_event_subscriptions FOR INSERT WITH CHECK (bot_id IN (SELECT id FROM bots WHERE workspace_id IN (SELECT get_my_admin_workspace_ids())));
+
+  -- Slash Commands
+  CREATE POLICY "sc_select" ON slash_commands FOR SELECT USING (workspace_id IN (SELECT get_my_workspace_ids()));
+  CREATE POLICY "sc_insert" ON slash_commands FOR INSERT WITH CHECK (workspace_id IN (SELECT get_my_admin_workspace_ids()));
+
+  -- Reminders
+  CREATE POLICY "rem_select" ON reminders FOR SELECT USING (target_user_id = auth.uid() OR created_by = auth.uid());
+  CREATE POLICY "rem_insert" ON reminders FOR INSERT WITH CHECK (created_by = auth.uid());
+
+  -- Shared Channel Links
+  CREATE POLICY "scl_select" ON shared_channel_links FOR SELECT USING (local_channel_id IN (SELECT get_my_channel_ids()));
+
+  -- Remote Profiles (scoped: only visible to users who share a channel link to the remote workspace)
+  CREATE POLICY "rp_select" ON remote_profiles FOR SELECT USING (
+    remote_workspace_url IN (
+      SELECT scl.remote_workspace_url FROM shared_channel_links scl
+      WHERE scl.local_channel_id IN (SELECT get_my_channel_ids())
+    )
+  );
+  CREATE POLICY "rp_insert" ON remote_profiles FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+  CREATE POLICY "rp_update" ON remote_profiles FOR UPDATE USING (auth.uid() IS NOT NULL);
+
+  -- Scheduled Messages
+  CREATE POLICY "sm_select" ON scheduled_messages FOR SELECT USING (user_id = auth.uid());
+  CREATE POLICY "sm_insert" ON scheduled_messages FOR INSERT WITH CHECK (user_id = auth.uid());
+  CREATE POLICY "sm_update" ON scheduled_messages FOR UPDATE USING (user_id = auth.uid());
+  CREATE POLICY "sm_delete" ON scheduled_messages FOR DELETE USING (user_id = auth.uid());
+
+  -- Saved Items (Bookmarks)
+  CREATE POLICY "si_select" ON saved_items FOR SELECT USING (user_id = auth.uid());
+  CREATE POLICY "si_insert" ON saved_items FOR INSERT WITH CHECK (user_id = auth.uid());
+  CREATE POLICY "si_delete" ON saved_items FOR DELETE USING (user_id = auth.uid());
+
+  -- Trigger: auto-create profile on signup
+  CREATE OR REPLACE FUNCTION handle_new_user()
+  RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
+  AS $fn$
+  BEGIN
+    INSERT INTO public.profiles (id, email, display_name)
+    VALUES (
