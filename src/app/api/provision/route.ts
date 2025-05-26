@@ -51,3 +51,30 @@ async function handleSQL(
   accessToken: string,
   body: { sql?: string; readOnly?: boolean }
 ) {
+  const { sql, readOnly } = body
+
+  if (!sql) {
+    return NextResponse.json({ error: 'Missing required field: sql' }, { status: 400 })
+  }
+
+  const url = `https://api.supabase.com/v1/projects/${projectRef}/database/query`
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query: sql, read_only: readOnly ?? false }),
+  })
+
+  if (!response.ok) {
+    const responseBody = await response.text()
+    try {
+      const json = JSON.parse(responseBody)
+      const message = json.message || json.error || responseBody
+      return NextResponse.json({ error: message }, { status: response.status })
+    } catch {
+      return NextResponse.json(
+        { error: `Supabase API error (HTTP ${response.status}): ${responseBody}` },
+        { status: response.status }
