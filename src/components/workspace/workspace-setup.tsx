@@ -22,3 +22,27 @@ export function WorkspaceSetup({ onCreated }: WorkspaceSetupProps) {
     e.preventDefault()
     const client = getSupabaseClient()
     if (!client || !name.trim()) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { data: { session } } = await client.auth.getSession()
+      if (!session) throw new Error('Not authenticated')
+
+      const slug = name
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+
+      // Generate workspace ID client-side so we can reference it immediately
+      const workspaceId = crypto.randomUUID()
+
+      // Create workspace (no .select() — RLS SELECT policy requires membership first)
+      const { error: wsError } = await client
+        .from('workspaces')
+        .insert({ id: workspaceId, name: name.trim(), slug })
+
+      if (wsError) throw wsError
+
+      // Add self as owner (must happen before any SELECT on workspaces)
