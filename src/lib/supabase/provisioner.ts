@@ -108,3 +108,30 @@ export async function provision(
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       console.error(`[provision] Migration ${step}/${total} failed (${label}):`, msg)
+      errors.push(`${label}: ${msg}`)
+      // Continue with remaining migrations — don't abort on individual failures
+      // (e.g. table already exists, duplicate policy, etc.)
+    }
+  }
+
+  if (errors.length > 0) {
+    console.warn(`[provision] ${errors.length} migration(s) had errors (non-fatal):`, errors)
+  }
+
+  onProgress(`Done! ${total - errors.length}/${total} migrations applied.`)
+}
+
+export async function configureSiteUrl(
+  supabaseURL: string,
+  accessToken: string,
+  siteUrl: string,
+  onProgress: ProgressCallback
+): Promise<boolean> {
+  const cleanToken = accessToken.trim()
+  const ref = extractProjectRef(supabaseURL)
+
+  if (!ref) {
+    console.warn('configureSiteUrl: invalid Supabase URL')
+    return false
+  }
+
