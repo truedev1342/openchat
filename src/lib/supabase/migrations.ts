@@ -484,3 +484,73 @@ export const migrations: string[] = [
   BEGIN
     INSERT INTO public.profiles (id, email, display_name)
     VALUES (
+      NEW.id,
+      NEW.email,
+      COALESCE(NEW.raw_user_meta_data->>'display_name', split_part(NEW.email, '@', 1))
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      email = EXCLUDED.email,
+      display_name = EXCLUDED.display_name;
+    RETURN NEW;
+  END;
+  $fn$;
+
+  DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+  CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+  -- Trigger: update thread reply count
+  CREATE OR REPLACE FUNCTION update_thread_reply_count()
+  RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
+  AS $fn$
+  BEGIN
+    IF NEW.parent_id IS NOT NULL THEN
+      UPDATE messages SET thread_reply_count = (
+        SELECT count(*) FROM messages WHERE parent_id = NEW.parent_id
+      ) WHERE id = NEW.parent_id;
+    END IF;
+    RETURN NEW;
+  END;
+  $fn$;
+
+  DROP TRIGGER IF EXISTS on_message_reply ON messages;
+  CREATE TRIGGER on_message_reply
+    AFTER INSERT ON messages
+    FOR EACH ROW
+    WHEN (NEW.parent_id IS NOT NULL)
+    EXECUTE FUNCTION update_thread_reply_count();`,
+
+  // Realtime Setup
+  `DO $$
+  BEGIN
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE messages; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE channels; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE channel_members; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE active_calls; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE call_participants; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE profiles; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE reactions; EXCEPTION WHEN duplicate_object THEN NULL; END;
+  END
+  $$;`,
+
+  // Replica identity full for channel_members (needed for DELETE events to include old row data)
+  `ALTER TABLE channel_members REPLICA IDENTITY FULL;`,
+
+  // Cleanup orphaned auth users
+  `DELETE FROM auth.users
+  WHERE id NOT IN (SELECT id FROM public.profiles)
+  AND created_at < now() - interval '1 minute';`,
+]
+
+export const REQUIRED_TABLES = [
+  'profiles', 'workspaces', 'workspace_members',
+  'channels', 'channel_members', 'messages',
+  'reactions', 'file_attachments', 'pins', 'read_receipts',
+  'workspace_settings', 'active_calls', 'call_participants',
+  'incoming_webhooks', 'outgoing_webhooks', 'webhook_delivery_logs',
+  'bots', 'bot_channel_memberships', 'bot_event_subscriptions',
+  'slash_commands', 'reminders', 'shared_channel_links', 'remote_profiles',
+  'scheduled_messages',
+  'saved_items',
+]
