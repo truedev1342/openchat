@@ -78,3 +78,29 @@ async function handleSQL(
       return NextResponse.json(
         { error: `Supabase API error (HTTP ${response.status}): ${responseBody}` },
         { status: response.status }
+      )
+    }
+  }
+
+  // Some SQL commands (DDL) may return empty or non-JSON responses
+  const responseBody = await response.text()
+  if (!responseBody) {
+    return NextResponse.json([])
+  }
+  try {
+    const data = JSON.parse(responseBody)
+    return NextResponse.json(data)
+  } catch {
+    // Non-JSON success response (e.g. plain text from DDL)
+    return NextResponse.json({ result: responseBody })
+  }
+}
+
+async function handleAuthConfig(
+  projectRef: string,
+  accessToken: string,
+  body: { siteUrl?: string; redirectUrls?: string[] }
+) {
+  const { siteUrl, redirectUrls } = body
+
+  if (!siteUrl) {
