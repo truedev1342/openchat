@@ -135,3 +135,31 @@ export async function configureSiteUrl(
     return false
   }
 
+  onProgress('Configuring Supabase Auth Site URL...')
+
+  // Build redirect URLs: the current site URL + localhost for dev
+  const redirectUrls = [siteUrl]
+  if (!siteUrl.includes('localhost')) {
+    redirectUrls.push('http://localhost:3000')
+  }
+
+  try {
+    const response = await fetch('/api/provision', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        projectRef: ref,
+        accessToken: cleanToken,
+        action: 'update_auth_config',
+        siteUrl,
+        redirectUrls,
+      }),
+    })
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({ error: `HTTP ${response.status}` }))
+      console.warn('Failed to configure Site URL:', data.error)
+      onProgress('⚠ Could not auto-configure Site URL')
+      return false
+    }
+
