@@ -46,3 +46,27 @@ export function WorkspaceSetup({ onCreated }: WorkspaceSetupProps) {
       if (wsError) throw wsError
 
       // Add self as owner (must happen before any SELECT on workspaces)
+      const { error: memberError } = await client.from('workspace_members').insert({
+        workspace_id: workspaceId,
+        profile_id: session.user.id,
+        role: 'owner',
+      })
+
+      if (memberError) throw memberError
+
+      // Now fetch workspace (SELECT policy works because we're a member)
+      const { data: workspace, error: fetchError } = await client
+        .from('workspaces')
+        .select()
+        .eq('id', workspaceId)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      // Create workspace settings
+      await client.from('workspace_settings').insert({
+        workspace_id: workspace.id,
+      })
+
+      // Create #general channel
+      const { data: general } = await client
