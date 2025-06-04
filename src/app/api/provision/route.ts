@@ -104,3 +104,30 @@ async function handleAuthConfig(
   const { siteUrl, redirectUrls } = body
 
   if (!siteUrl) {
+    return NextResponse.json({ error: 'Missing required field: siteUrl' }, { status: 400 })
+  }
+
+  // Validate URL format
+  try {
+    new URL(siteUrl)
+  } catch {
+    return NextResponse.json({ error: 'Invalid siteUrl format' }, { status: 400 })
+  }
+
+  console.log(`[auth-config] Updating Site URL to: ${siteUrl}`)
+
+  // First, GET current auth config to preserve existing redirect URLs
+  const getUrl = `https://api.supabase.com/v1/projects/${projectRef}/config/auth`
+  const getResponse = await fetch(getUrl, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  })
+
+  let existingRedirectUrls: string[] = []
+  if (getResponse.ok) {
+    const currentConfig = await getResponse.json()
+    // uri_allowlist is a comma-separated string in Supabase API
+    if (currentConfig.URI_ALLOW_LIST) {
