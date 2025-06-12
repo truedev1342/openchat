@@ -163,3 +163,31 @@ export async function configureSiteUrl(
       return false
     }
 
+    onProgress(`Site URL configured to ${siteUrl}`)
+    return true
+  } catch (err) {
+    console.warn('Failed to configure Site URL:', err)
+    onProgress('⚠ Could not auto-configure Site URL')
+    return false
+  }
+}
+
+export async function verifyTables(
+  supabaseURL: string,
+  accessToken: string
+): Promise<string[]> {
+  const cleanToken = accessToken.trim()
+  const ref = extractProjectRef(supabaseURL)
+  if (!ref) throw new Error('Invalid Supabase URL')
+
+  const sql = `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN (${REQUIRED_TABLES.map((t) => `'${t}'`).join(',')});`
+
+  try {
+    const result = (await executeSQL(ref, cleanToken, sql, true)) as Array<{ table_name: string }>
+    const found = new Set(result.map((r) => r.table_name))
+    return REQUIRED_TABLES.filter((t) => !found.has(t))
+  } catch {
+    // If verification fails, skip (tables were likely created)
+    return []
+  }
+}

@@ -70,3 +70,28 @@ export function WorkspaceSetup({ onCreated }: WorkspaceSetupProps) {
 
       // Create #general channel
       const { data: general } = await client
+        .from('channels')
+        .insert({
+          workspace_id: workspace.id,
+          name: 'general',
+          description: 'General discussion',
+          created_by: session.user.id,
+        })
+        .select()
+        .single()
+
+      if (general) {
+        await client.from('channel_members').insert({
+          channel_id: general.id,
+          profile_id: session.user.id,
+          role: 'admin',
+        })
+      }
+
+      // Create #random channel
+      const { data: random } = await client
+        .from('channels')
+        .insert({
+          workspace_id: workspace.id,
+          name: 'random',
+          description: 'Random stuff and off-topic',
