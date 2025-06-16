@@ -131,3 +131,30 @@ async function handleAuthConfig(
     const currentConfig = await getResponse.json()
     // uri_allowlist is a comma-separated string in Supabase API
     if (currentConfig.URI_ALLOW_LIST) {
+      existingRedirectUrls = currentConfig.URI_ALLOW_LIST
+        .split(',')
+        .map((u: string) => u.trim())
+        .filter(Boolean)
+    }
+    console.log(`[auth-config] Current Site URL: ${currentConfig.SITE_URL}`)
+    console.log(`[auth-config] Current Redirect URLs: ${currentConfig.URI_ALLOW_LIST || '(none)'}`)
+  } else {
+    console.warn(`[auth-config] Failed to GET current config: HTTP ${getResponse.status}`)
+  }
+
+  // Merge new redirect URLs with existing ones (deduplicate)
+  const allRedirectUrls = [...new Set([...existingRedirectUrls, ...(redirectUrls || [])])]
+
+  // Update auth config via Supabase Management API
+  const updateUrl = `https://api.supabase.com/v1/projects/${projectRef}/config/auth`
+  const updateBody: Record<string, unknown> = {
+    SITE_URL: siteUrl,
+  }
+
+  if (allRedirectUrls.length > 0) {
+    updateBody.URI_ALLOW_LIST = allRedirectUrls.join(',')
+  }
+
+  console.log(`[auth-config] PATCH body:`, JSON.stringify(updateBody))
+
+  const response = await fetch(updateUrl, {
