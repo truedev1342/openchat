@@ -95,3 +95,27 @@ export function WorkspaceSetup({ onCreated }: WorkspaceSetupProps) {
           workspace_id: workspace.id,
           name: 'random',
           description: 'Random stuff and off-topic',
+          created_by: session.user.id,
+        })
+        .select()
+        .single()
+
+      if (random) {
+        await client.from('channel_members').insert({
+          channel_id: random.id,
+          profile_id: session.user.id,
+        })
+      }
+
+      // Seed slash commands
+      const commands = [
+        { command: 'remind', description: 'Set a reminder', usage_hint: '@user message in X min', type: 'builtin' },
+        { command: 'poll', description: 'Create a poll', usage_hint: '"Question" "Option 1" "Option 2"', type: 'builtin' },
+        { command: 'topic', description: 'Set channel topic', usage_hint: 'new topic text', type: 'builtin' },
+        { command: 'invite', description: 'Invite user to channel', usage_hint: '@user', type: 'builtin' },
+        { command: 'status', description: 'Set your status', usage_hint: ':emoji: status text', type: 'builtin' },
+        { command: 'who', description: 'List channel members', usage_hint: '', type: 'builtin' },
+      ]
+
+      for (const cmd of commands) {
+        await client.from('slash_commands').insert({
