@@ -93,3 +93,50 @@ export default function SetupPage() {
       console.log('[setup] Step 1: Database provisioning complete')
 
       // Step 2: Save config to .env.local IMMEDIATELY after DB setup
+      // This is the critical step — do it before optional steps so config isn't lost
+      console.log('[setup] Step 2: Saving configuration...')
+      setProvisioningStatus('Saving configuration...')
+      try {
+        const res = await fetch('/api/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ supabaseUrl: cleanURL, anonKey: cleanKey }),
+        })
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          // In production (Vercel, etc.), .env.local can't be written — that's expected
+          if (data.error?.includes('production') || data.error?.includes('development')) {
+            setIsProduction(true)
+            console.log('[setup] Step 2: Production detected, env vars need manual config')
+          } else {
+            console.error('[setup] Step 2: Failed to save config:', data.error)
+            throw new Error(data.error || 'Failed to save configuration')
+          }
+        } else {
+          console.log('[setup] Step 2: .env.local written successfully')
+        }
+      } catch (saveErr) {
+        console.error('[setup] Step 2: Error saving config:', saveErr)
+        throw saveErr
+      }
+
+      // Step 3: Configure Supabase Auth Site URL (optional — non-blocking)
+      console.log('[setup] Step 3: Configuring Site URL...')
+      try {
+        const currentOrigin = window.location.origin
+        const siteUrlOk = await configureSiteUrl(cleanURL, cleanToken, currentOrigin, (status) => {
+          setProvisioningStatus(status)
+        })
+        setSiteUrlConfigured(siteUrlOk)
+        console.log('[setup] Step 3: Site URL configured:', siteUrlOk)
+      } catch (siteUrlErr) {
+        console.warn('[setup] Step 3: Site URL config failed (non-blocking):', siteUrlErr)
+        setSiteUrlConfigured(false)
+      }
+
+      // Step 4: Verify tables (optional — non-blocking)
+      console.log('[setup] Step 4: Verifying tables...')
+      setProvisioningStatus('Verifying database...')
+      try {
+        const missing = await verifyTables(cleanURL, cleanToken)
