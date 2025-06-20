@@ -158,3 +158,30 @@ async function handleAuthConfig(
   console.log(`[auth-config] PATCH body:`, JSON.stringify(updateBody))
 
   const response = await fetch(updateUrl, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updateBody),
+  })
+
+  if (!response.ok) {
+    const responseBody = await response.text()
+    console.error(`[auth-config] PATCH failed: HTTP ${response.status}`, responseBody)
+    try {
+      const json = JSON.parse(responseBody)
+      const message = json.message || json.error || responseBody
+      return NextResponse.json({ error: message }, { status: response.status })
+    } catch {
+      return NextResponse.json(
+        { error: `Supabase API error (HTTP ${response.status}): ${responseBody}` },
+        { status: response.status }
+      )
+    }
+  }
+
+  const data = await response.json()
+  console.log(`[auth-config] ✅ Site URL updated to: ${siteUrl}`)
+  return NextResponse.json({ success: true, siteUrl, redirectUrls: allRedirectUrls, data })
+}
