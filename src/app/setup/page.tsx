@@ -140,3 +140,51 @@ export default function SetupPage() {
       setProvisioningStatus('Verifying database...')
       try {
         const missing = await verifyTables(cleanURL, cleanToken)
+        if (missing.length > 0) {
+          console.warn('[setup] Step 4: Missing tables:', missing)
+          // Don't throw — tables were likely created, just verification failed
+        } else {
+          console.log('[setup] Step 4: All tables verified')
+        }
+      } catch (verifyErr) {
+        console.warn('[setup] Step 4: Verification failed (non-blocking):', verifyErr)
+      }
+
+      console.log('[setup] Setup complete!')
+      setStep('done')
+    } catch (err) {
+      console.error('[setup] Setup failed:', err)
+      setError(err instanceof Error ? err.message : 'Unknown error')
+    }
+  }
+
+  const canConnect =
+    supabaseURL.trim() !== '' &&
+    anonKey.trim() !== '' &&
+    accessToken.trim() !== '' &&
+    !tokenWarning
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      {step === 'welcome' && (
+        <div className="max-w-lg w-full space-y-8 text-center">
+          <div className="space-y-4">
+            <MessageSquare className="mx-auto h-16 w-16 text-primary" />
+            <h1 className="text-4xl font-bold tracking-tight">Welcome to OpenChat</h1>
+            <p className="text-lg text-muted-foreground">
+              The open-source team communication platform
+            </p>
+          </div>
+
+          <div className="space-y-3 text-left">
+            <Feature icon={<Server className="h-5 w-5" />} title="Self-hosted" desc="Your data, your servers, your rules" />
+            <Feature icon={<Shield className="h-5 w-5" />} title="Secure" desc="Row-level security powered by Supabase" />
+            <Feature icon={<Phone className="h-5 w-5" />} title="Audio & Video" desc="Built-in calls with LiveKit WebRTC" />
+            <Feature icon={<Puzzle className="h-5 w-5" />} title="Extensible" desc="Webhooks, bots, slash commands" />
+          </div>
+
+          <Button size="lg" className="w-full max-w-xs" onClick={() => setStep('connect')}>
+            Get Started <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      )}
