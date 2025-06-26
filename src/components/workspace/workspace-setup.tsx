@@ -119,3 +119,27 @@ export function WorkspaceSetup({ onCreated }: WorkspaceSetupProps) {
 
       for (const cmd of commands) {
         await client.from('slash_commands').insert({
+          ...cmd,
+          workspace_id: workspace.id,
+        })
+      }
+
+      onCreated(workspace as Workspace)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create workspace')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="max-w-md w-full">
+        <CardHeader className="text-center">
+          <Building2 className="mx-auto h-12 w-12 text-primary mb-2" />
+          <CardTitle>Create your workspace</CardTitle>
+          <CardDescription>This is where your team will communicate.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleCreate} className="space-y-4">
+            <div className="space-y-2">
