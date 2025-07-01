@@ -23,3 +23,28 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   const [loading, setLoading] = useState(true)
   const [showWorkspaceSetup, setShowWorkspaceSetup] = useState(false)
 
+  // Enable browser notifications for mentions and DMs
+  useNotifications()
+
+  // Track user presence (online status + last_seen_at)
+  usePresence()
+
+  // Poll and send scheduled messages when due
+  useScheduledMessages()
+
+  useEffect(() => {
+    loadUserData()
+    // Ensure storage buckets exist (fire-and-forget)
+    fetch('/api/storage', { method: 'POST' }).catch(() => {})
+  }, [])
+
+  async function loadUserData() {
+    const client = getSupabaseClient()
+    if (!client) {
+      router.push('/setup')
+      return
+    }
+
+    try {
+      const { data: { session } } = await client.auth.getSession()
+      if (!session) {

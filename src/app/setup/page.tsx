@@ -188,3 +188,50 @@ export default function SetupPage() {
           </Button>
         </div>
       )}
+
+      {step === 'connect' && (
+        <Card className="max-w-lg w-full">
+          <CardHeader className="text-center">
+            <Server className="mx-auto h-12 w-12 text-green-500 mb-2" />
+            <CardTitle>Connect your Supabase project</CardTitle>
+            <CardDescription>
+              OpenChat will automatically create all 23 tables, security policies, triggers, and
+              realtime config.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="url">Supabase Project URL</Label>
+              <Input
+                id="url"
+                placeholder="https://xxxxx.supabase.co"
+                value={supabaseURL}
+                onChange={(e) => setSupabaseURL(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Settings &rsaquo; API &rsaquo; Project URL</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="anon">Anon (Public) Key</Label>
+              <Input
+                id="anon"
+                type="password"
+                placeholder="eyJhbGci..."
+                value={anonKey}
+                onChange={(e) => setAnonKey(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Settings &rsaquo; API &rsaquo; Project API keys &rsaquo; anon public
+              </p>
+            </div>
+
+            <div className="border-t pt-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="token">Personal Access Token</Label>
+                <span className="text-xs text-orange-500 font-medium">(used once, not saved)</span>
+              </div>
+              <Input
+                id="token"
+                type="password"
+                placeholder="sbp_..."
+                value={accessToken}
