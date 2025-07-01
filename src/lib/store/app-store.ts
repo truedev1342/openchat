@@ -73,3 +73,41 @@ interface AppState {
   setCurrentChannelId: (id: string | null) => void
   openThread: (message: Message) => void
   closeThread: () => void
+  openProfile: (userId: string) => void
+  closeProfile: () => void
+  toggleActivity: () => void
+  closeActivity: () => void
+  addActivity: (item: ActivityItem) => void
+  markActivityRead: (id: string) => void
+  markAllActivitiesRead: () => void
+  hideDm: (channelId: string) => void
+  unhideDm: (channelId: string) => void
+  incrementUnread: (channelId: string) => void
+  clearUnread: (channelId: string) => void
+  muteChannel: (channelId: string) => void
+  unmuteChannel: (channelId: string) => void
+  setReactions: (messageId: string, reactions: Reaction[]) => void
+  addReaction: (messageId: string, reaction: Reaction) => void
+  removeReaction: (messageId: string, reactionId: string) => void
+  joinCall: (call: ActiveCall, token: string, url: string) => void
+  leaveCall: () => void
+  setChannelActiveCall: (channelId: string, call: ActiveCall | null) => void
+  setSavedItemIds: (ids: Set<string>) => void
+  toggleSavedItem: (messageId: string) => void
+  setSidebarOpen: (open: boolean) => void
+  toggleSidebar: () => void
+  signOut: () => void
+}
+
+export const useAppStore = create<AppState>((set) => ({
+  user: null,
+  workspace: null,
+  workspaceRole: null,
+  channels: [],
+  dmChannels: [],
+  currentChannelId: null,
+  previewChannel: null,
+  threadParentMessage: null,
+  profileUserId: null,
+  activityOpen: false,
+  activities: [],
