@@ -111,3 +111,41 @@ export const useAppStore = create<AppState>((set) => ({
   profileUserId: null,
   activityOpen: false,
   activities: [],
+  unreadActivityCount: 0,
+  hiddenDmIds: [],
+  unreadCounts: {},
+  mutedChannelIds: [],
+  reactions: {},
+  activeCall: null,
+  isInCall: false,
+  callToken: null,
+  callUrl: null,
+  channelActiveCalls: {},
+  savedItemIds: new Set(),
+  sidebarOpen: false,
+
+  setUser: (user) => set({ user }),
+  setWorkspace: (workspace) => set({ workspace }),
+  setWorkspaceRole: (workspaceRole) => set({ workspaceRole }),
+  setPreviewChannel: (previewChannel) => set({ previewChannel, threadParentMessage: null, profileUserId: null }),
+  setChannels: (channels) => set({ channels }),
+  setDmChannels: (dmChannels) => set({ dmChannels }),
+  addChannel: (channel) =>
+    set((state) => ({
+      channels: [...state.channels, channel].sort((a, b) => a.name.localeCompare(b.name)),
+    })),
+  removeChannel: (channelId) =>
+    set((state) => ({
+      channels: state.channels.filter((c) => c.id !== channelId),
+      currentChannelId: state.currentChannelId === channelId ? null : state.currentChannelId,
+    })),
+  updateChannel: (channelId, updates) =>
+    set((state) => ({
+      channels: state.channels.map((c) =>
+        c.id === channelId ? { ...c, ...updates } : c
+      ).sort((a, b) => a.name.localeCompare(b.name)),
+    })),
+  addDmChannel: (channel) =>
+    set((state) => ({
+      dmChannels: [...state.dmChannels.filter((c) => c.id !== channel.id), channel],
+      // Auto-unhide if a new message caused this DM to appear
