@@ -235,3 +235,51 @@ export default function SetupPage() {
                 type="password"
                 placeholder="sbp_..."
                 value={accessToken}
+                onChange={(e) => handleTokenChange(e.target.value)}
+              />
+              {tokenWarning && (
+                <div className="flex items-start gap-2 text-orange-500">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <p className="text-xs">{tokenWarning}</p>
+                </div>
+              )}
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <ExternalLink className="h-3 w-3" />
+                <span>Generate at</span>
+                <a
+                  href="https://supabase.com/dashboard/account/tokens"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  supabase.com/dashboard/account/tokens
+                </a>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This is NOT the anon key or service_role key. It&apos;s a Personal Access Token (starts
+                with sbp_) from your Supabase account settings.
+              </p>
+            </div>
+
+            {error && (
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" onClick={() => setStep('welcome')}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+              </Button>
+              <Button className="flex-1" disabled={!canConnect} onClick={startProvisioning}>
+                Connect & Setup
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {step === 'provisioning' && (
+        <div className="max-w-md w-full space-y-6 text-center">
+          {!error ? (
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
