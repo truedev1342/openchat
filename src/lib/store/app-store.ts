@@ -149,3 +149,40 @@ export const useAppStore = create<AppState>((set) => ({
     set((state) => ({
       dmChannels: [...state.dmChannels.filter((c) => c.id !== channel.id), channel],
       // Auto-unhide if a new message caused this DM to appear
+      hiddenDmIds: state.hiddenDmIds.filter((id) => id !== channel.id),
+    })),
+  setCurrentChannelId: (currentChannelId) => set((state) => {
+    // Mark activities for this channel as read
+    let readCount = 0
+    const updatedActivities = state.activities.map((a) => {
+      if (currentChannelId && a.channelId === currentChannelId && !a.read) {
+        readCount++
+        return { ...a, read: true }
+      }
+      return a
+    })
+
+    return {
+      currentChannelId,
+      previewChannel: null,
+      threadParentMessage: null,
+      profileUserId: null,
+      unreadCounts: currentChannelId
+        ? { ...state.unreadCounts, [currentChannelId]: 0 }
+        : state.unreadCounts,
+      activities: updatedActivities,
+      unreadActivityCount: Math.max(0, state.unreadActivityCount - readCount),
+    }
+  }),
+  openThread: (message) => set({ threadParentMessage: message, profileUserId: null }),
+  closeThread: () => set({ threadParentMessage: null }),
+  openProfile: (userId) => set({ profileUserId: userId, threadParentMessage: null }),
+  closeProfile: () => set({ profileUserId: null }),
+  toggleActivity: () => set((state) => ({
+    activityOpen: !state.activityOpen,
+    threadParentMessage: null,
+    profileUserId: null,
+  })),
+  closeActivity: () => set({ activityOpen: false }),
+  addActivity: (item) =>
+    set((state) => ({

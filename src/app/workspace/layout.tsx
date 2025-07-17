@@ -48,3 +48,29 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
     try {
       const { data: { session } } = await client.auth.getSession()
       if (!session) {
+        router.push('/auth')
+        return
+      }
+
+      // Load profile
+      const { data: profile } = await client
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single()
+
+      if (!profile) {
+        router.push('/auth')
+        return
+      }
+
+      setUser(profile as Profile)
+
+      // Find workspace membership
+      const { data: members } = await client
+        .from('workspace_members')
+        .select('*, workspace:workspaces(*)')
+        .eq('profile_id', session.user.id)
+        .limit(1)
+
+      const member = members?.[0] as (WorkspaceMember & { workspace: Workspace }) | undefined
