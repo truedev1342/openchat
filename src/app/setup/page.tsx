@@ -283,3 +283,50 @@ export default function SetupPage() {
         <div className="max-w-md w-full space-y-6 text-center">
           {!error ? (
             <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+          ) : (
+            <AlertTriangle className="mx-auto h-12 w-12 text-destructive" />
+          )}
+          <h2 className="text-2xl font-bold">{!error ? 'Setting up your workspace...' : 'Setup failed'}</h2>
+          <p className="text-muted-foreground">{provisioningStatus}</p>
+
+          {error && (
+            <div className="space-y-4">
+              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-md">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+              <div className="flex gap-3 justify-center">
+                <Button onClick={() => { setError(null); startProvisioning() }}>
+                  <RotateCcw className="mr-2 h-4 w-4" /> Retry
+                </Button>
+                <Button variant="outline" onClick={() => { setError(null); setStep('connect') }}>
+                  Back to setup
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {step === 'done' && (
+        <div className="max-w-md w-full space-y-6 text-center">
+          <Check className="mx-auto h-16 w-16 text-green-500" />
+          <h2 className="text-2xl font-bold">Database provisioned!</h2>
+          <p className="text-muted-foreground">
+            Your Supabase project has been configured with all 23 tables, security policies, and
+            realtime subscriptions.
+          </p>
+          {!siteUrlConfigured && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-md text-left space-y-2">
+              <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                ⚠ Could not auto-configure the Supabase Site URL
+              </p>
+              <p className="text-xs text-red-600 dark:text-red-400">
+                Invitation and password-reset emails will point to <strong>localhost</strong> instead of your domain.
+                To fix this, go to <strong>Supabase Dashboard → Authentication → URL Configuration</strong> and
+                set the <strong>Site URL</strong> to your production URL.
+              </p>
+            </div>
+          )}
+          {isProduction ? (
+            <>
+              <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-md text-left space-y-3">
