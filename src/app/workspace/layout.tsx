@@ -74,3 +74,28 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
         .limit(1)
 
       const member = members?.[0] as (WorkspaceMember & { workspace: Workspace }) | undefined
+      if (member?.workspace) {
+        setWorkspace(member.workspace)
+        setWorkspaceRole(member.role)
+        await loadChannels(member.workspace.id)
+        // Load saved item IDs for bookmark state
+        loadSavedItemIds(session.user.id, member.workspace.id)
+      } else {
+        setShowWorkspaceSetup(true)
+      }
+    } catch (err) {
+      console.error('Failed to load user data:', err)
+      router.push('/auth')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function loadSavedItemIds(userId: string, workspaceId: string) {
+    const client = getSupabaseClient()
+    if (!client) return
+    try {
+      const { data, error } = await client
+        .from('saved_items')
+        .select('message_id')
+        .eq('user_id', userId)
