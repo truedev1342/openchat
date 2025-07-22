@@ -330,3 +330,51 @@ export default function SetupPage() {
           {isProduction ? (
             <>
               <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-md text-left space-y-3">
+                <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                  Set these environment variables in your hosting platform (Vercel, Railway, etc.):
+                </p>
+                <div className="space-y-2">
+                  <div className="bg-muted rounded p-2">
+                    <code className="text-xs break-all select-all">NEXT_PUBLIC_SUPABASE_URL={supabaseURL.trim()}</code>
+                  </div>
+                  <div className="bg-muted rounded p-2">
+                    <code className="text-xs break-all select-all">NEXT_PUBLIC_SUPABASE_ANON_KEY={anonKey.trim()}</code>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  After setting them, redeploy your app. You can also add <code className="bg-muted px-1 py-0.5 rounded">SUPABASE_SERVICE_ROLE_KEY</code> for email invitations and file uploads.
+                </p>
+              </div>
+              <Button size="lg" onClick={() => window.location.href = '/auth'}>
+                I&apos;ve set the env vars — Go to sign up
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-md">
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                  <strong>Important:</strong> Please restart your dev server (<code className="bg-muted px-1 py-0.5 rounded">Ctrl+C</code> then <code className="bg-muted px-1 py-0.5 rounded">npm run dev</code>) for the new configuration to take effect.
+                </p>
+              </div>
+              <Button size="lg" onClick={() => window.location.reload()}>
+                I&apos;ve restarted — Continue
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Feature({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+  return (
+    <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+      <div className="text-primary">{icon}</div>
+      <div>
+        <p className="font-medium">{title}</p>
+        <p className="text-sm text-muted-foreground">{desc}</p>
+      </div>
+    </div>
+  )
+}
