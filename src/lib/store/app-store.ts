@@ -186,3 +186,41 @@ export const useAppStore = create<AppState>((set) => ({
   closeActivity: () => set({ activityOpen: false }),
   addActivity: (item) =>
     set((state) => ({
+      activities: [item, ...state.activities].slice(0, 100), // keep max 100
+      unreadActivityCount: state.activityOpen ? state.unreadActivityCount : state.unreadActivityCount + 1,
+    })),
+  markActivityRead: (id) => set((state) => {
+    const found = state.activities.find((a) => a.id === id && !a.read)
+    if (!found) return state
+    return {
+      activities: state.activities.map((a) => a.id === id ? { ...a, read: true } : a),
+      unreadActivityCount: Math.max(0, state.unreadActivityCount - 1),
+    }
+  }),
+  markAllActivitiesRead: () => set((state) => ({
+    activities: state.activities.map((a) => ({ ...a, read: true })),
+    unreadActivityCount: 0,
+  })),
+  hideDm: (channelId) =>
+    set((state) => ({
+      hiddenDmIds: [...state.hiddenDmIds, channelId],
+      currentChannelId: state.currentChannelId === channelId ? null : state.currentChannelId,
+    })),
+  unhideDm: (channelId) =>
+    set((state) => ({
+      hiddenDmIds: state.hiddenDmIds.filter((id) => id !== channelId),
+    })),
+  incrementUnread: (channelId) =>
+    set((state) => ({
+      unreadCounts: {
+        ...state.unreadCounts,
+        [channelId]: (state.unreadCounts[channelId] || 0) + 1,
+      },
+    })),
+  clearUnread: (channelId) =>
+    set((state) => ({
+      unreadCounts: { ...state.unreadCounts, [channelId]: 0 },
+    })),
+  muteChannel: (channelId) =>
+    set((state) => ({
+      mutedChannelIds: [...state.mutedChannelIds, channelId],

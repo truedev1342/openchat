@@ -90,3 +90,95 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           .from('channel_members')
           .select('profile_id, profile:profiles(*)')
           .eq('channel_id', dm.id)
+
+        if (dm.name.startsWith('gdm-')) {
+          // Group DM: collect all other members
+          const otherMembers = members
+            ?.filter(m => m.profile_id !== user!.id)
+            .map(m => m.profile as unknown as Profile)
+            .filter(Boolean) || []
+          dmWithUsers.push({
+            ...dm,
+            memberProfiles: otherMembers,
+          })
+        } else {
+          // Regular DM: single other user
+          const other = members?.find((m) => m.profile_id !== user!.id)
+          dmWithUsers.push({
+            ...dm,
+            otherUser: other?.profile as unknown as Profile | undefined,
+          })
+        }
+      }
+
+      setDmChannels(dmWithUsers)
+    }
+
+    loadDms()
+
+    // Subscribe to new messages — track unread + auto-add DM channels
+    const newMsgSub = client
+      .channel('sidebar-dm-watcher')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        async (payload) => {
+          const msg = payload.new as { channel_id: string; sender_id: string }
+          if (msg.sender_id === user!.id) return
+
+          const state = useAppStore.getState()
+
+          // Track unread count for any channel in sidebar (if not currently viewing)
+          if (msg.channel_id !== state.currentChannelId) {
+            const isKnownChannel =
+              state.channels.some((c) => c.id === msg.channel_id) ||
+              state.dmChannels.some((d) => d.id === msg.channel_id)
+            if (isKnownChannel) {
+              state.incrementUnread(msg.channel_id)
+            }
+          }
+
+          // Check if this channel is already in our DM list
+          if (state.dmChannels.some((d) => d.id === msg.channel_id)) return
+
+          // Check if this is a DM or group DM channel we're a member of
+          const { data: ch } = await client!
+            .from('channels')
+            .select('*')
+            .eq('id', msg.channel_id)
+            .or('name.like.dm-%,name.like.gdm-%')
+            .single()
+
+          if (!ch) return
+
+          // Verify we're a member
+          const { data: membership } = await client!
+            .from('channel_members')
+            .select('profile_id')
+            .eq('channel_id', ch.id)
+            .eq('profile_id', user!.id)
+            .single()
+
+          if (!membership) return
+
+          // Load the members
+          const { data: members } = await client!
+            .from('channel_members')
+            .select('profile_id, profile:profiles(*)')
+            .eq('channel_id', ch.id)
+
+          if (ch.name.startsWith('gdm-')) {
+            const otherMembers = members
+              ?.filter((m) => m.profile_id !== user!.id)
+              .map(m => m.profile as unknown as Profile)
+              .filter(Boolean) || []
+            useAppStore.getState().addDmChannel({
+              ...ch,
+              memberProfiles: otherMembers,
+            })
+          } else {
+            const other = members?.find((m) => m.profile_id !== user!.id)
+            useAppStore.getState().addDmChannel({
+              ...ch,
+              otherUser: other?.profile as unknown as Profile | undefined,
+            })
