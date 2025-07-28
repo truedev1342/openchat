@@ -99,3 +99,28 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
         .from('saved_items')
         .select('message_id')
         .eq('user_id', userId)
+        .eq('workspace_id', workspaceId)
+      if (error) return // Table may not exist yet — silently ignore
+      if (data) {
+        const ids = new Set(data.map((d: { message_id: string }) => d.message_id))
+        useAppStore.getState().setSavedItemIds(ids)
+      }
+    } catch {
+      // saved_items table missing — feature will be unavailable until re-provisioned
+    }
+  }
+
+  async function loadChannels(workspaceId: string) {
+    const client = getSupabaseClient()
+    if (!client) return
+
+    const userId = useAppStore.getState().user?.id
+    if (!userId) return
+
+    // Only load channels the user is a member of
+    const { data: myMemberships } = await client
+      .from('channel_members')
+      .select('channel_id')
+      .eq('profile_id', userId)
+
+    if (!myMemberships || myMemberships.length === 0) return
