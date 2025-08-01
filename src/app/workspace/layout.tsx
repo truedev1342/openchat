@@ -124,3 +124,29 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
       .eq('profile_id', userId)
 
     if (!myMemberships || myMemberships.length === 0) return
+
+    const myChannelIds = myMemberships.map((m) => m.channel_id)
+
+    const { data: myChannels } = await client
+      .from('channels')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .eq('is_archived', false)
+      .in('id', myChannelIds)
+      .order('name')
+
+    // Filter out DM and group DM channels (they're shown separately in the DM section)
+    const allChannels = ((myChannels || []) as Channel[]).filter(
+      (c) => !c.name.startsWith('dm-') && !c.name.startsWith('gdm-')
+    )
+
+    if (allChannels.length > 0) {
+      setChannels(allChannels)
+      // Default to #general or first channel
+      const general = allChannels.find((c: Channel) => c.name === 'general') || allChannels[0]
+      setCurrentChannelId(general.id)
+    }
+  }
+
+  async function handleWorkspaceCreated(ws: Workspace) {
+    setWorkspace(ws)

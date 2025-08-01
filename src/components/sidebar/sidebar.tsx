@@ -182,3 +182,95 @@ export function Sidebar({ onNavigate }: SidebarProps) {
               ...ch,
               otherUser: other?.profile as unknown as Profile | undefined,
             })
+          }
+        }
+      )
+      .subscribe()
+
+    // Subscribe to channel_members changes — detect when user is removed from a channel
+    const membershipSub = client
+      .channel('sidebar-membership-watcher')
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'channel_members' },
+        (payload) => {
+          const old = payload.old as { channel_id?: string; profile_id?: string }
+          if (old.profile_id === user!.id && old.channel_id) {
+            const state = useAppStore.getState()
+            const isDm = state.dmChannels.some((d) => d.id === old.channel_id)
+            if (isDm) {
+              state.setDmChannels(state.dmChannels.filter((d) => d.id !== old.channel_id))
+            } else {
+              state.removeChannel(old.channel_id!)
+            }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'channel_members' },
+        async (payload) => {
+          const row = payload.new as { channel_id: string; profile_id: string; role: string }
+          if (row.profile_id !== user!.id) return
+
+          const state = useAppStore.getState()
+          if (state.channels.some((c) => c.id === row.channel_id)) return
+          if (state.dmChannels.some((d) => d.id === row.channel_id)) return
+
+          const { data: ch } = await client!
+            .from('channels')
+            .select('*')
+            .eq('id', row.channel_id)
+            .single()
+
+          if (!ch) return
+
+          if (ch.name.startsWith('dm-') || ch.name.startsWith('gdm-')) {
+            const { data: members } = await client!
+              .from('channel_members')
+              .select('profile_id, profile:profiles(*)')
+              .eq('channel_id', ch.id)
+
+            if (ch.name.startsWith('gdm-')) {
+              const otherMembers = members
+                ?.filter((m) => m.profile_id !== user!.id)
+                .map(m => m.profile as unknown as Profile)
+                .filter(Boolean) || []
+              useAppStore.getState().addDmChannel({
+                ...ch,
+                memberProfiles: otherMembers,
+              })
+            } else {
+              const other = members?.find((m) => m.profile_id !== user!.id)
+              useAppStore.getState().addDmChannel({
+                ...ch,
+                otherUser: other?.profile as unknown as Profile | undefined,
+              })
+            }
+          } else {
+            useAppStore.getState().addChannel(ch as Channel)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      newMsgSub.unsubscribe()
+      membershipSub.unsubscribe()
+    }
+  }, [workspace, user, setDmChannels])
+
+  // ⌘K shortcut
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  // Load & subscribe to active calls across workspace
+  useEffect(() => {
