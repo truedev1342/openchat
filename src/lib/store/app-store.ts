@@ -224,3 +224,41 @@ export const useAppStore = create<AppState>((set) => ({
   muteChannel: (channelId) =>
     set((state) => ({
       mutedChannelIds: [...state.mutedChannelIds, channelId],
+    })),
+  unmuteChannel: (channelId) =>
+    set((state) => ({
+      mutedChannelIds: state.mutedChannelIds.filter((id) => id !== channelId),
+    })),
+  setReactions: (messageId, reactions) =>
+    set((state) => ({
+      reactions: { ...state.reactions, [messageId]: reactions },
+    })),
+  addReaction: (messageId, reaction) =>
+    set((state) => ({
+      reactions: {
+        ...state.reactions,
+        [messageId]: [...(state.reactions[messageId] || []), reaction],
+      },
+    })),
+  removeReaction: (messageId, reactionId) =>
+    set((state) => ({
+      reactions: {
+        ...state.reactions,
+        [messageId]: (state.reactions[messageId] || []).filter((r) => r.id !== reactionId),
+      },
+    })),
+  joinCall: (call, token, url) =>
+    set({ activeCall: call, callToken: token, callUrl: url, isInCall: true }),
+  leaveCall: () =>
+    set({ activeCall: null, callToken: null, callUrl: null, isInCall: false }),
+  setChannelActiveCall: (channelId, call) =>
+    set((state) => {
+      const updated = { ...state.channelActiveCalls }
+      if (call) {
+        updated[channelId] = call
+      } else {
+        delete updated[channelId]
+      }
+      return { channelActiveCalls: updated }
+    }),
+  setSavedItemIds: (savedItemIds) => set({ savedItemIds }),
