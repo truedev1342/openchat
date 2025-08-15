@@ -37,3 +37,43 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
   useEffect(() => {
     if (!open || !workspace) return
     const client = getSupabaseClient()
+    if (!client) return
+
+    client
+      .from('workspace_members')
+      .select('profile:profiles(*)')
+      .eq('workspace_id', workspace.id)
+      .then(({ data }) => {
+        if (data) {
+          const profiles = data
+            .map((d: Record<string, unknown>) => d.profile as Profile)
+            .filter((p) => p && p.id !== user?.id)
+          setAllMembers(profiles)
+        }
+      })
+  }, [open, workspace, user])
+
+  // Reset on close
+  useEffect(() => {
+    if (!open) {
+      setName('')
+      setDescription('')
+      setIsPrivate(false)
+      setSelectedMembers([])
+      setMemberSearch('')
+      setError(null)
+    }
+  }, [open])
+
+  function formatChannelName(value: string) {
+    return value
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-_]/g, '')
+  }
+
+  const filteredMembers = allMembers.filter(
+    (m) =>
+      !selectedMembers.some((s) => s.id === m.id) &&
+      (m.display_name.toLowerCase().includes(memberSearch.toLowerCase()) ||
+        m.email?.toLowerCase().includes(memberSearch.toLowerCase()))
