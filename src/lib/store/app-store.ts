@@ -262,3 +262,41 @@ export const useAppStore = create<AppState>((set) => ({
       return { channelActiveCalls: updated }
     }),
   setSavedItemIds: (savedItemIds) => set({ savedItemIds }),
+  setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+  toggleSidebar: () => set(state => ({ sidebarOpen: !state.sidebarOpen })),
+  toggleSavedItem: (messageId) => set(state => {
+    const newSet = new Set(state.savedItemIds)
+    if (newSet.has(messageId)) {
+      newSet.delete(messageId)
+    } else {
+      newSet.add(messageId)
+    }
+    return { savedItemIds: newSet }
+  }),
+  signOut: () =>
+    set({
+      user: null,
+      workspace: null,
+      workspaceRole: null,
+      channels: [],
+      dmChannels: [],
+      currentChannelId: null,
+      previewChannel: null,
+      threadParentMessage: null,
+      profileUserId: null,
+      activityOpen: false,
+      activities: [],
+      unreadActivityCount: 0,
+      hiddenDmIds: [],
+      unreadCounts: {},
+      mutedChannelIds: [],
+      reactions: {},
+      activeCall: null,
+      isInCall: false,
+      callToken: null,
+      callUrl: null,
+      channelActiveCalls: {},
+      savedItemIds: new Set(),
+      sidebarOpen: false,
+    }),
+}))
