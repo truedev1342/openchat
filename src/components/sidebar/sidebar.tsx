@@ -274,3 +274,96 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
   // Load & subscribe to active calls across workspace
   useEffect(() => {
+    if (!workspace) return
+    const client = getSupabaseClient()
+    if (!client) return
+
+    async function loadActiveCalls() {
+      const { data } = await client!
+        .from('active_calls')
+        .select('*')
+        .eq('workspace_id', workspace!.id)
+        .is('ended_at', null)
+
+      if (data) {
+        data.forEach((call: ActiveCall) => {
+          setChannelActiveCall(call.channel_id, call)
+        })
+      }
+    }
+
+    loadActiveCalls()
+
+    const callsSub = client
+      .channel('sidebar-calls-watcher')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'active_calls',
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const call = payload.new as ActiveCall
+            if (call.workspace_id === workspace!.id) {
+              setChannelActiveCall(call.channel_id, call)
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const call = payload.new as ActiveCall
+            if (call.workspace_id === workspace!.id) {
+              if (call.ended_at) {
+                setChannelActiveCall(call.channel_id, null)
+              } else {
+                setChannelActiveCall(call.channel_id, call)
+              }
+            }
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      callsSub.unsubscribe()
+    }
+  }, [workspace])
+
+  async function handleSignOut() {
+    const client = getSupabaseClient()
+    if (client) {
+      await client.auth.signOut()
+    }
+    useAppStore.getState().signOut()
+    router.push('/auth')
+  }
+
+  const regularChannels = channels.filter((c) => !c.name.startsWith('dm-') && !c.name.startsWith('gdm-'))
+
+  // Sort channels: unmuted first (alphabetical), then muted (alphabetical)
+  const sortedChannels = [...regularChannels].sort((a, b) => {
+    const aMuted = mutedChannelIds.includes(a.id)
+    const bMuted = mutedChannelIds.includes(b.id)
+    if (aMuted !== bMuted) return aMuted ? 1 : -1
+    return a.name.localeCompare(b.name)
+  })
+
+  return (
+    <>
+      <div className="w-[260px] flex flex-col h-full" style={{ background: '#F0EBFF', borderRight: '1px solid #DDD6F3' }}>
+        {/* Workspace header */}
+        <div className="px-4 py-3.5 flex items-center justify-between" style={{ borderBottom: '1px solid #DDD6F3' }}>
+          <button
+            onClick={() => setWorkspaceSettingsOpen(true)}
+            className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity"
+          >
+            <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: '#7C5CFC' }}>
+              {(workspace?.name || 'O')[0]?.toUpperCase()}
+            </div>
+            <span className="font-[800] text-[16px] truncate" style={{ color: '#2D2B3D' }}>{workspace?.name || 'OpenChat'}</span>
+          </button>
+          <button
+            onClick={() => setDmDialogOpen(true)}
+            className="h-8 w-8 rounded-lg flex items-center justify-center transition-all hover:bg-[#E0D6FF]"
+          >
+            <PenSquare className="h-4 w-4" style={{ color: '#8E8EA0' }} />
+          </button>
