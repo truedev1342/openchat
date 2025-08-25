@@ -150,3 +150,28 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
 
   async function handleWorkspaceCreated(ws: Workspace) {
     setWorkspace(ws)
+    setShowWorkspaceSetup(false)
+    await loadChannels(ws.id)
+  }
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (showWorkspaceSetup) {
+    return <WorkspaceSetup onCreated={handleWorkspaceCreated} />
+  }
+
+  if (!workspace) {
+    return null
+  }
+
+  return (
+    <div className="h-screen flex bg-background relative overflow-hidden">
+      <IncomingCallBanner />
+
+      {/* Sidebar - Desktop: always visible, Mobile/Tablet: overlay drawer */}

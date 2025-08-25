@@ -77,3 +77,43 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
       !selectedMembers.some((s) => s.id === m.id) &&
       (m.display_name.toLowerCase().includes(memberSearch.toLowerCase()) ||
         m.email?.toLowerCase().includes(memberSearch.toLowerCase()))
+  )
+
+  function addMember(member: Profile) {
+    setSelectedMembers((prev) => [...prev, member])
+    setMemberSearch('')
+  }
+
+  function removeMember(memberId: string) {
+    setSelectedMembers((prev) => prev.filter((m) => m.id !== memberId))
+  }
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault()
+    const client = getSupabaseClient()
+    if (!client || !workspace || !user) return
+
+    const channelName = formatChannelName(name)
+    if (!channelName) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { data: { session } } = await client.auth.getSession()
+      if (!session) throw new Error('Not authenticated')
+
+      // Create channel
+      const { data: channel, error: chError } = await client
+        .from('channels')
+        .insert({
+          workspace_id: workspace.id,
+          name: channelName,
+          description: description.trim() || null,
+          is_private: isPrivate,
+          created_by: session.user.id,
+        })
+        .select()
+        .single()
+
+      if (chError) throw chError
