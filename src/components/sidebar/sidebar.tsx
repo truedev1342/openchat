@@ -367,3 +367,95 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           >
             <PenSquare className="h-4 w-4" style={{ color: '#8E8EA0' }} />
           </button>
+        </div>
+
+        {/* Search bar */}
+        <div className="px-3 pt-3 pb-1">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl transition-all text-[13px] hover:shadow-sm"
+            style={{ background: '#ffffff', color: '#8E8EA0', border: '1px solid #E5E1EE' }}
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span className="flex-1 text-left">Search</span>
+            <kbd className="text-[10px] px-1.5 py-0.5 rounded-md font-mono" style={{ background: '#F5F2FF', color: '#8E8EA0' }}>⌘K</kbd>
+          </button>
+        </div>
+
+        {/* Activity button */}
+        <div className="px-3 pb-1 pt-1">
+          <button
+            onClick={toggleActivity}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl transition-all text-[13px] hover:shadow-sm relative"
+            style={{ background: '#ffffff', color: '#4A4860', border: '1px solid #E5E1EE' }}
+          >
+            <Bell className="h-3.5 w-3.5" style={{ color: '#7C5CFC' }} />
+            <span className="flex-1 text-left font-medium">Activity</span>
+            {unreadActivityCount > 0 && (
+              <span
+                className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white min-w-[18px] text-center"
+                style={{ background: '#E55B5B' }}
+              >
+                {unreadActivityCount > 99 ? '99+' : unreadActivityCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Saved Items button */}
+        <div className="px-3 pb-1">
+          <button
+            onClick={() => setSavedItemsOpen(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl transition-all text-[13px] hover:shadow-sm"
+            style={{ background: '#ffffff', color: '#4A4860', border: '1px solid #E5E1EE' }}
+          >
+            <Bookmark className="h-3.5 w-3.5" style={{ color: '#7C5CFC' }} />
+            <span className="flex-1 text-left font-medium">Saved Items</span>
+          </button>
+        </div>
+
+        {/* Channel list */}
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="px-2 pt-3 pb-2">
+            {/* Channels section */}
+            <div className="flex items-center justify-between px-2 py-0.5 mb-0.5">
+              <button
+                onClick={() => setChannelsOpen(!channelsOpen)}
+                className="flex items-center gap-1 text-[12px] font-semibold uppercase tracking-wider transition-colors hover:text-[#2D2B3D]"
+                style={{ color: '#8E8EA0' }}
+              >
+                {channelsOpen ? (
+                  <ChevronDown className="h-3 w-3" />
+                ) : (
+                  <ChevronRight className="h-3 w-3" />
+                )}
+                Channels
+              </button>
+              <button
+                className="h-6 w-6 rounded-md flex items-center justify-center transition-all hover:bg-[#E0D6FF]"
+                onClick={() => setCreateChannelOpen(true)}
+              >
+                <Plus className="h-3.5 w-3.5" style={{ color: '#8E8EA0' }} />
+              </button>
+            </div>
+
+            {channelsOpen && (
+              <div className="space-y-0.5">
+                {sortedChannels.map((channel) => {
+                  const isActive = currentChannelId === channel.id
+                  const isMuted = mutedChannelIds.includes(channel.id)
+                  const unreadCount = unreadCounts[channel.id] || 0
+                  const hasActiveCall = !!channelActiveCalls[channel.id]
+
+                  return (
+                    <div key={channel.id} className="group relative">
+                      <button
+                        onClick={() => { setCurrentChannelId(channel.id); onNavigate?.() }}
+                        className={cn(
+                          'w-full flex items-center gap-2 px-3 py-[6px] rounded-lg text-[14px] transition-all',
+                          isActive
+                            ? 'text-white font-semibold shadow-sm'
+                            : 'hover:bg-[#E0D6FF]'
+                        )}
+                        style={{
+                          background: isActive ? '#7C5CFC' : undefined,
