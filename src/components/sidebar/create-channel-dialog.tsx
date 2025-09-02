@@ -117,3 +117,43 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
         .single()
 
       if (chError) throw chError
+
+      // Add creator as channel admin
+      await client.from('channel_members').insert({
+        channel_id: channel.id,
+        profile_id: session.user.id,
+        role: 'admin',
+      })
+
+      // Add selected members
+      if (selectedMembers.length > 0) {
+        await client.from('channel_members').insert(
+          selectedMembers.map((m) => ({
+            channel_id: channel.id,
+            profile_id: m.id,
+            role: 'member',
+          }))
+        )
+      }
+
+      addChannel(channel as Channel)
+      setCurrentChannelId(channel.id)
+      onOpenChange(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create channel')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Create a channel</DialogTitle>
+          <DialogDescription>
+            Channels are where your team communicates. They&apos;re best organized around a topic.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleCreate} className="space-y-4">
+          {/* Channel name */}
