@@ -28,3 +28,33 @@ export function BrowseChannelsDialog({ open, onOpenChange }: BrowseChannelsDialo
 
   useEffect(() => {
     if (!open || !workspace || !user) return
+    loadChannels()
+  }, [open, workspace, user])
+
+  useEffect(() => {
+    if (!open) {
+      setSearch('')
+    }
+  }, [open])
+
+  async function loadChannels() {
+    const client = getSupabaseClient()
+    if (!client || !workspace || !user) return
+
+    setLoading(true)
+
+    // Load all public non-DM channels
+    const { data: chans } = await client
+      .from('channels')
+      .select('*')
+      .eq('workspace_id', workspace.id)
+      .eq('is_private', false)
+      .eq('is_archived', false)
+      .not('name', 'like', 'dm-%')
+      .order('name')
+
+    if (!chans) {
+      setLoading(false)
+      return
+    }
+
