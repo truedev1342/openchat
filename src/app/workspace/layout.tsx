@@ -175,3 +175,29 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
       <IncomingCallBanner />
 
       {/* Sidebar - Desktop: always visible, Mobile/Tablet: overlay drawer */}
+      {isDesktop ? (
+        <Sidebar />
+      ) : (
+        <>
+          {/* Backdrop */}
+          {sidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/30 z-40 transition-opacity"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+          {/* Drawer */}
+          <div className={`fixed left-0 top-0 h-full z-50 transition-transform duration-200 ease-out ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}>
+            <Sidebar onNavigate={() => setSidebarOpen(false)} />
+          </div>
+        </>
+      )}
+
+      <ActivityPanel />
+      <main className="flex-1 flex flex-col min-w-0">{children}</main>
+      <CallPanel />
+    </div>
+  )
+}
