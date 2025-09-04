@@ -459,3 +459,95 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                         )}
                         style={{
                           background: isActive ? '#7C5CFC' : undefined,
+                          color: isActive ? '#fff' : isMuted ? '#A9A6B8' : '#4A4860',
+                        }}
+                      >
+                        {channel.is_private ? (
+                          <Lock className={cn('h-3.5 w-3.5 shrink-0', isMuted && !isActive ? 'opacity-40' : 'opacity-70')} />
+                        ) : (
+                          <Hash className={cn('h-4 w-4 shrink-0', isMuted && !isActive ? 'opacity-40' : 'opacity-70')} />
+                        )}
+                        <span className={cn('truncate flex-1 text-left', isMuted && !isActive && 'opacity-60')}>
+                          {channel.name}
+                        </span>
+                        {hasActiveCall && (
+                          <Phone className="h-3 w-3 shrink-0 text-green-500" />
+                        )}
+                        {isMuted && !isActive && !hasActiveCall && (
+                          <BellOff className="h-3 w-3 shrink-0 opacity-30" />
+                        )}
+                        {unreadCount > 0 && !isActive && (
+                          <span
+                            className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white min-w-[18px] text-center shrink-0"
+                            style={{ background: isMuted ? '#A9A6B8' : '#7C5CFC' }}
+                          >
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
+                      </button>
+                      {/* Mute/unmute toggle on hover */}
+                      {!isActive && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            isMuted ? unmuteChannel(channel.id) : muteChannel(channel.id)
+                          }}
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#DDD6F3]"
+                          title={isMuted ? 'Unmute channel' : 'Mute channel'}
+                          style={{ color: '#8E8EA0' }}
+                        >
+                          {isMuted ? <Bell className="h-3 w-3" /> : <BellOff className="h-3 w-3" />}
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+
+                {/* Browse channels button */}
+                <button
+                  onClick={() => setBrowseOpen(true)}
+                  className="w-full flex items-center gap-2 px-3 py-[6px] rounded-lg text-[14px] transition-all hover:bg-[#E0D6FF]"
+                  style={{ color: '#8E8EA0' }}
+                >
+                  <Compass className="h-4 w-4 shrink-0" />
+                  <span>Browse channels</span>
+                </button>
+              </div>
+            )}
+
+            {/* Direct Messages section */}
+            <div className="flex items-center justify-between px-2 py-0.5 mt-5 mb-0.5">
+              <button
+                onClick={() => setDmsOpen(!dmsOpen)}
+                className="flex items-center gap-1 text-[12px] font-semibold uppercase tracking-wider transition-colors hover:text-[#2D2B3D]"
+                style={{ color: '#8E8EA0' }}
+              >
+                {dmsOpen ? (
+                  <ChevronDown className="h-3 w-3" />
+                ) : (
+                  <ChevronRight className="h-3 w-3" />
+                )}
+                Direct Messages
+              </button>
+              <button
+                className="h-6 w-6 rounded-md flex items-center justify-center transition-all hover:bg-[#E0D6FF]"
+                onClick={() => setDmDialogOpen(true)}
+              >
+                <Plus className="h-3.5 w-3.5" style={{ color: '#8E8EA0' }} />
+              </button>
+            </div>
+
+            {dmsOpen && (
+              <div className="space-y-0.5">
+                {dmChannels
+                  .filter((dm) => !hiddenDmIds.includes(dm.id))
+                  .map((dm) => {
+                    const isGroupDm = dm.name.startsWith('gdm-')
+                    const otherName = isGroupDm
+                      ? (dm.memberProfiles || []).map(m => m.display_name).join(', ') || 'Group DM'
+                      : dm.otherUser?.display_name || 'Unknown'
+                    const initial = isGroupDm
+                      ? (dm.memberProfiles?.[0]?.display_name?.[0]?.toUpperCase() || 'G')
+                      : (dm.otherUser?.display_name?.[0]?.toUpperCase() || '?')
+                    const isOnline = isGroupDm
+                      ? (dm.memberProfiles || []).some(m => m.is_online)
