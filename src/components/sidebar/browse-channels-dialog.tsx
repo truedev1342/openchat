@@ -58,3 +58,33 @@ export function BrowseChannelsDialog({ open, onOpenChange }: BrowseChannelsDialo
       return
     }
 
+    // Get user's memberships
+    const { data: memberships } = await client
+      .from('channel_members')
+      .select('channel_id')
+      .eq('profile_id', user.id)
+
+    const memberChannelIds = new Set(memberships?.map((m) => m.channel_id) || [])
+
+    // Get member counts for all channels
+    const channelIds = chans.map((c) => c.id)
+    const { data: memberCounts } = await client
+      .from('channel_members')
+      .select('channel_id')
+      .in('channel_id', channelIds)
+
+    const countMap = new Map<string, number>()
+    memberCounts?.forEach((m) => {
+      countMap.set(m.channel_id, (countMap.get(m.channel_id) || 0) + 1)
+    })
+
+    const withInfo: ChannelWithInfo[] = chans.map((c) => ({
+      ...(c as Channel),
+      memberCount: countMap.get(c.id) || 0,
+      isMember: memberChannelIds.has(c.id),
+    }))
+
+    setAllChannels(withInfo)
+    setLoading(false)
+  }
+
