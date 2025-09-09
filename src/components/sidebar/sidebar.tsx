@@ -551,3 +551,95 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                       : (dm.otherUser?.display_name?.[0]?.toUpperCase() || '?')
                     const isOnline = isGroupDm
                       ? (dm.memberProfiles || []).some(m => m.is_online)
+                      : (dm.otherUser?.is_online ?? false)
+                    const isActive = currentChannelId === dm.id
+                    const unreadCount = unreadCounts[dm.id] || 0
+                    const dmHasActiveCall = !!channelActiveCalls[dm.id]
+
+                    return (
+                      <div key={dm.id} className="group relative">
+                        <button
+                          onClick={() => { setCurrentChannelId(dm.id); onNavigate?.() }}
+                          className={cn(
+                            'w-full flex items-center gap-2 px-3 py-[6px] rounded-lg text-[14px] transition-all',
+                            isActive
+                              ? 'text-white font-semibold shadow-sm'
+                              : unreadCount > 0
+                                ? 'hover:bg-[#E0D6FF] font-semibold'
+                                : 'hover:bg-[#E0D6FF]'
+                          )}
+                          style={{
+                            background: isActive ? '#7C5CFC' : undefined,
+                            color: isActive ? '#fff' : '#4A4860',
+                          }}
+                        >
+                          {isGroupDm ? (
+                            /* Stacked avatars for group DM */
+                            <div className="relative shrink-0 w-5 h-5">
+                              {dm.memberProfiles?.[0]?.avatar_url ? (
+                                <img src={dm.memberProfiles[0].avatar_url} alt="" className="absolute top-0 left-0 h-3.5 w-3.5 rounded-sm object-cover border" style={{ borderColor: isActive ? '#7C5CFC' : '#F0EBFF' }} />
+                              ) : (
+                                <div
+                                  className="absolute top-0 left-0 h-3.5 w-3.5 rounded-sm flex items-center justify-center text-[7px] font-bold border"
+                                  style={{
+                                    background: isActive ? 'rgba(255,255,255,0.25)' : '#E0D6FF',
+                                    color: isActive ? '#fff' : '#7C5CFC',
+                                    borderColor: isActive ? '#7C5CFC' : '#F0EBFF',
+                                  }}
+                                >
+                                  {dm.memberProfiles?.[0]?.display_name?.[0]?.toUpperCase() || '?'}
+                                </div>
+                              )}
+                              {dm.memberProfiles?.[1]?.avatar_url ? (
+                                <img src={dm.memberProfiles[1].avatar_url} alt="" className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-sm object-cover border" style={{ borderColor: isActive ? '#7C5CFC' : '#F0EBFF' }} />
+                              ) : (
+                                <div
+                                  className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-sm flex items-center justify-center text-[7px] font-bold border"
+                                  style={{
+                                    background: isActive ? 'rgba(255,255,255,0.35)' : '#D6CBFF',
+                                    color: isActive ? '#fff' : '#7C5CFC',
+                                    borderColor: isActive ? '#7C5CFC' : '#F0EBFF',
+                                  }}
+                                >
+                                  {dm.memberProfiles?.[1]?.display_name?.[0]?.toUpperCase() || (dm.memberProfiles && dm.memberProfiles.length > 1 ? '+' : '?')}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="relative shrink-0">
+                              {dm.otherUser?.avatar_url ? (
+                                <img
+                                  src={dm.otherUser.avatar_url}
+                                  alt={otherName}
+                                  className="h-5 w-5 rounded-md object-cover"
+                                />
+                              ) : (
+                                <div
+                                  className="h-5 w-5 rounded-md flex items-center justify-center text-[10px] font-bold"
+                                  style={{ background: isActive ? 'rgba(255,255,255,0.25)' : '#E0D6FF', color: isActive ? '#fff' : '#7C5CFC' }}
+                                >
+                                  {initial}
+                                </div>
+                              )}
+                              <Circle
+                                className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 ${
+                                  isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-300 text-gray-300'
+                                }`}
+                                strokeWidth={3}
+                                stroke={isActive ? '#7C5CFC' : '#F0EBFF'}
+                              />
+                            </div>
+                          )}
+                          <span className="truncate flex-1 text-left">{otherName}</span>
+                          {dmHasActiveCall && (
+                            <Phone className="h-3 w-3 shrink-0 text-green-500" />
+                          )}
+                          {unreadCount > 0 && !isActive && (
+                            <span
+                              className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white min-w-[18px] text-center shrink-0"
+                              style={{ background: '#7C5CFC' }}
+                            >
+                              {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                          )}
+                        </button>
