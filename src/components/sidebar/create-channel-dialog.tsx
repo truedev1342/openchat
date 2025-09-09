@@ -157,3 +157,42 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
         </DialogHeader>
         <form onSubmit={handleCreate} className="space-y-4">
           {/* Channel name */}
+          <div className="space-y-2">
+            <Label htmlFor="ch-name">Name</Label>
+            <div className="relative">
+              {isPrivate ? (
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              )}
+              <Input
+                id="ch-name"
+                placeholder="e.g. marketing"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="pl-9"
+                required
+              />
+            </div>
+            {name && (
+              <p className="text-xs text-muted-foreground">
+                Channel will be created as <span className="font-mono">{isPrivate ? '🔒' : '#'}{formatChannelName(name)}</span>
+              </p>
+            )}
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <Label htmlFor="ch-desc">Description <span className="text-muted-foreground">(optional)</span></Label>
+            <Input
+              id="ch-desc"
+              placeholder="What is this channel about?"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+
+          {/* Visibility toggle */}
+          <div className="space-y-2">
+            <Label>Visibility</Label>
+            <div className="flex gap-2">
