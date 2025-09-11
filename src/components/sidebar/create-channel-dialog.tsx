@@ -196,3 +196,43 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
           <div className="space-y-2">
             <Label>Visibility</Label>
             <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setIsPrivate(false)}
+                className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border text-[13px] transition-all ${
+                  !isPrivate ? 'border-[#7C5CFC] bg-[#EDE5FF]' : 'border-[#E5E1EE] hover:border-[#DDD6F3]'
+                }`}
+                style={{ color: !isPrivate ? '#7C5CFC' : '#4A4860' }}
+              >
+                <Hash className="h-4 w-4" />
+                <div className="text-left">
+                  <div className="font-medium">Public</div>
+                  <div className="text-[11px] opacity-70">Anyone can join</div>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPrivate(true)}
+                className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border text-[13px] transition-all ${
+                  isPrivate ? 'border-[#7C5CFC] bg-[#EDE5FF]' : 'border-[#E5E1EE] hover:border-[#DDD6F3]'
+                }`}
+                style={{ color: isPrivate ? '#7C5CFC' : '#4A4860' }}
+              >
+                <Lock className="h-4 w-4" />
+                <div className="text-left">
+                  <div className="font-medium">Private</div>
+                  <div className="text-[11px] opacity-70">Invite only</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Add members */}
+          <div className="space-y-2">
+            <Label>Add members <span className="text-muted-foreground">(optional)</span></Label>
+
+            {/* Selected members chips */}
+            {selectedMembers.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {selectedMembers.map((m) => (
+                  <span

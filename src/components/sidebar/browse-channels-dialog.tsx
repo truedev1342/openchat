@@ -88,3 +88,33 @@ export function BrowseChannelsDialog({ open, onOpenChange }: BrowseChannelsDialo
     setLoading(false)
   }
 
+  async function handleJoin(channel: ChannelWithInfo) {
+    const client = getSupabaseClient()
+    if (!client || !user) return
+
+    setJoiningId(channel.id)
+    try {
+      await client.from('channel_members').insert({
+        channel_id: channel.id,
+        profile_id: user.id,
+        role: 'member',
+      })
+
+      // Add to sidebar
+      const { memberCount: _, isMember: __, ...rawChannel } = channel
+      addChannel(rawChannel as Channel)
+
+      // Update local state
+      setAllChannels((prev) =>
+        prev.map((c) =>
+          c.id === channel.id ? { ...c, isMember: true, memberCount: c.memberCount + 1 } : c
+        )
+      )
+
+      // Navigate to channel
+      setCurrentChannelId(channel.id)
+      onOpenChange(false)
+    } catch (err) {
+      console.error('Failed to join channel:', err)
+    }
+    setJoiningId(null)
