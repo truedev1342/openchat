@@ -643,3 +643,96 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                             </span>
                           )}
                         </button>
+                        {/* Close / hide DM button (on hover) */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            hideDm(dm.id)
+                          }}
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#DDD6F3]"
+                          title="Close conversation"
+                          style={{ color: '#8E8EA0' }}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )
+                  })}
+
+                {dmChannels.filter((dm) => !hiddenDmIds.includes(dm.id)).length === 0 && (
+                  <button
+                    onClick={() => setDmDialogOpen(true)}
+                    className="w-full flex items-center gap-2 px-3 py-[6px] rounded-lg text-[14px] transition-all hover:bg-[#E0D6FF]"
+                    style={{ color: '#8E8EA0' }}
+                  >
+                    <Plus className="h-4 w-4 shrink-0" />
+                    <span>Start a conversation</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Invite members button */}
+            <button
+              onClick={() => setInviteOpen(true)}
+              className="w-full flex items-center gap-2 px-3 py-[6px] mt-5 rounded-lg text-[14px] transition-all hover:bg-[#E0D6FF]"
+              style={{ color: '#8E8EA0' }}
+            >
+              <UserPlus className="h-4 w-4 shrink-0" />
+              <span>Invite people</span>
+            </button>
+          </div>
+        </ScrollArea>
+
+        {/* User footer */}
+        <div className="px-3 py-3" style={{ borderTop: '1px solid #DDD6F3' }}>
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setProfileEditOpen(true)}
+              className="flex items-center gap-2.5 min-w-0 hover:bg-[#E0D6FF] rounded-xl px-2 py-1.5 -mx-2 transition-all"
+            >
+              <div className="relative shrink-0">
+                {user?.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt={user.display_name}
+                    className="h-9 w-9 rounded-xl object-cover"
+                  />
+                ) : (
+                  <div className="h-9 w-9 rounded-xl flex items-center justify-center text-sm font-bold text-white" style={{ background: '#7C5CFC' }}>
+                    {user?.display_name?.[0]?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <Circle className="absolute -bottom-0.5 -right-0.5 h-3 w-3 fill-green-500 text-green-500 stroke-[3]" stroke="#F0EBFF" />
+              </div>
+              <div className="min-w-0 text-left">
+                <p className="text-[13px] font-semibold truncate" style={{ color: '#2D2B3D' }}>{user?.display_name}</p>
+                {user?.status_emoji && (
+                  <p className="text-[11px] truncate" style={{ color: '#8E8EA0' }}>
+                    {user.status_emoji} {user.status_text || ''}
+                  </p>
+                )}
+              </div>
+            </button>
+            <button
+              className="h-8 w-8 rounded-lg flex items-center justify-center transition-all hover:bg-[#E0D6FF]"
+              onClick={handleSignOut}
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" style={{ color: '#8E8EA0' }} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <CreateChannelDialog open={createChannelOpen} onOpenChange={setCreateChannelOpen} />
+      <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+      <DmDialog open={dmDialogOpen} onOpenChange={setDmDialogOpen} />
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      <ProfileEditDialog open={profileEditOpen} onOpenChange={setProfileEditOpen} />
+      <BrowseChannelsDialog open={browseOpen} onOpenChange={setBrowseOpen} />
+      <WorkspaceSettingsDialog open={workspaceSettingsOpen} onOpenChange={setWorkspaceSettingsOpen} />
+      <SavedItemsPanel open={savedItemsOpen} onClose={() => setSavedItemsOpen(false)} />
+    </>
+  )
+}
