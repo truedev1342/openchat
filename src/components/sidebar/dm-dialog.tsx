@@ -76,3 +76,42 @@ export function DmDialog({ open, onOpenChange }: DmDialogProps) {
 
       let channelId: string
 
+      if (existing && existing.length > 0) {
+        channelId = existing[0].id
+        if (hiddenDmIds.includes(channelId)) {
+          unhideDm(channelId)
+        }
+      } else {
+        const id = crypto.randomUUID()
+        const { error } = await client.from('channels').insert({
+          id,
+          workspace_id: workspace.id,
+          name: dmName,
+          description: `Direct message between ${user.display_name} and ${otherUser.display_name}`,
+          is_private: true,
+          created_by: user.id,
+        })
+        if (error) throw error
+
+        const { error: memberError } = await client.from('channel_members').insert([
+          { channel_id: id, profile_id: user.id, role: 'admin' },
+          { channel_id: id, profile_id: otherUser.id, role: 'admin' },
+        ])
+        if (memberError) throw memberError
+        channelId = id
+      }
+
+      const { data: channelData } = await client
+        .from('channels')
+        .select('*')
+        .eq('id', channelId)
+        .single()
+
+      if (channelData) {
+        addDmChannel({ ...channelData, otherUser })
+      }
+
+      setCurrentChannelId(channelId)
+      onOpenChange(false)
+      setSearch('')
+    } catch (err) {
