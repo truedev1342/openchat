@@ -236,3 +236,43 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {selectedMembers.map((m) => (
                   <span
+                    key={m.id}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[12px] font-medium"
+                    style={{ background: '#EDE5FF', color: '#7C5CFC' }}
+                  >
+                    {m.display_name}
+                    <button
+                      type="button"
+                      onClick={() => removeMember(m.id)}
+                      className="hover:text-[#E55B5B] transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <Input
+              placeholder="Search members to add..."
+              value={memberSearch}
+              onChange={(e) => setMemberSearch(e.target.value)}
+            />
+
+            {/* Member suggestions */}
+            {memberSearch && filteredMembers.length > 0 && (
+              <div className="max-h-32 overflow-y-auto space-y-0.5 rounded-lg border border-[#E5E1EE] p-1">
+                {filteredMembers.slice(0, 6).map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => addMember(m)}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[#F5F2FF] transition-colors text-left text-[13px]"
+                  >
+                    <div className="relative shrink-0">
+                      {m.avatar_url ? (
+                        <img src={m.avatar_url} alt="" className="h-6 w-6 rounded-md object-cover" />
+                      ) : (
+                        <div className="h-6 w-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white" style={{ background: '#7C5CFC' }}>
+                          {m.display_name[0]?.toUpperCase()}
+                        </div>

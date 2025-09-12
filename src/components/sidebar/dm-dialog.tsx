@@ -115,3 +115,42 @@ export function DmDialog({ open, onOpenChange }: DmDialogProps) {
       onOpenChange(false)
       setSearch('')
     } catch (err) {
+      console.error('Failed to start DM:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function startGroupDm() {
+    const client = getSupabaseClient()
+    if (!client || !user || !workspace || selectedMembers.length < 2) return
+
+    setLoading(true)
+
+    try {
+      const id = crypto.randomUUID()
+      const gdmName = `gdm-${id.slice(0, 12)}`
+      const memberNames = selectedMembers.map(m => m.display_name).join(', ')
+
+      const { error } = await client.from('channels').insert({
+        id,
+        workspace_id: workspace.id,
+        name: gdmName,
+        description: `Group DM: ${user.display_name}, ${memberNames}`,
+        is_private: true,
+        created_by: user.id,
+      })
+      if (error) throw error
+
+      // Add all members including current user
+      const memberInserts = [
+        { channel_id: id, profile_id: user.id, role: 'admin' },
+        ...selectedMembers.map(m => ({
+          channel_id: id,
+          profile_id: m.id,
+          role: 'member' as string,
+        })),
+      ]
+      await client.from('channel_members').insert(memberInserts)
+
+      const { data: channelData } = await client
