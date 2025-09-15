@@ -148,3 +148,33 @@ export function BrowseChannelsDialog({ open, onOpenChange }: BrowseChannelsDialo
             autoFocus
           />
         </div>
+
+        <div className="max-h-80 overflow-y-auto space-y-1">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin" style={{ color: '#7C5CFC' }} />
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="text-sm text-center py-8" style={{ color: '#8E8EA0' }}>
+              {search ? 'No channels match your search' : 'No public channels available'}
+            </p>
+          ) : (
+            filtered.map((channel) => (
+              <div
+                key={channel.id}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#F5F2FF] transition-colors"
+              >
+                <div
+                  className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: '#EDE5FF' }}
+                >
+                  <Hash className="h-4 w-4" style={{ color: '#7C5CFC' }} />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <button
+                    onClick={() => {
+                      if (channel.isMember) {
+                        handleGoToChannel(channel.id)
+                      } else {
+                        // Preview channel without joining
