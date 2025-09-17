@@ -94,3 +94,100 @@ export function ChannelView({ channel, isPreview = false }: ChannelViewProps) {
         })
       }
     }
+
+    setLoadingMore(false)
+  }, [loadingMore, hasMore, messages, channel.id])
+
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    function handleScroll() {
+      if (container!.scrollTop < 100 && !loadingMore && hasMore && !loading) {
+        loadOlderMessages()
+      }
+    }
+
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [loadOlderMessages, loadingMore, hasMore, loading])
+
+  useEffect(() => {
+    const client = getSupabaseClient()
+    if (!client) return
+
+    async function loadMessages() {
+      setLoading(true)
+      setHasMore(true)
+      isInitialLoad.current = true
+
+      const { data } = await client!
+        .from('messages')
+        .select('*, sender:profiles(*)')
+        .eq('channel_id', channel.id)
+        .eq('is_deleted', false)
+        .is('parent_id', null)
+        .order('created_at', { ascending: false })
+        .limit(PAGE_SIZE)
+
+      if (data) {
+        const msgs = (data as Message[]).reverse()
+        setMessages(msgs)
+        if (data.length < PAGE_SIZE) {
+          setHasMore(false)
+        }
+        setTimeout(() => {
+          bottomRef.current?.scrollIntoView({ behavior: 'instant' })
+          isInitialLoad.current = false
+        }, 100)
+      }
+      setLoading(false)
+    }
+
+    async function fetchMessage(id: string): Promise<Message | null> {
+      const { data } = await client!
+        .from('messages')
+        .select('*, sender:profiles(*)')
+        .eq('id', id)
+        .single()
+      return data as Message | null
+    }
+
+    loadMessages()
+
+    const channelSub = client
+      .channel(`messages:${channel.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `channel_id=eq.${channel.id}`,
+        },
+        async (payload) => {
+          if (payload.new.parent_id) return
+
+          const fullMessage = await fetchMessage(payload.new.id)
+          if (fullMessage) {
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === fullMessage.id)) return prev
+              return [...prev, fullMessage]
+            })
+            const container = scrollContainerRef.current
+            if (container) {
+              const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200
+              if (isNearBottom || payload.new.sender_id === user?.id) {
+                scrollToBottom()
+              }
+            }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `channel_id=eq.${channel.id}`,
