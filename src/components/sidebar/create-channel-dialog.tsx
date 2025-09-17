@@ -276,3 +276,43 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
                         <div className="h-6 w-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white" style={{ background: '#7C5CFC' }}>
                           {m.display_name[0]?.toUpperCase()}
                         </div>
+                      )}
+                      <Circle
+                        className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 ${
+                          m.is_online ? 'fill-green-500 text-green-500' : 'fill-gray-300 text-gray-300'
+                        }`}
+                        strokeWidth={3}
+                        stroke="white"
+                      />
+                    </div>
+                    <span style={{ color: '#2D2B3D' }}>{m.display_name}</span>
+                    {m.email && <span className="text-[11px] ml-auto" style={{ color: '#8E8EA0' }}>{m.email}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {error && (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading || !formatChannelName(name)}
+              style={{ background: '#7C5CFC', color: '#fff' }}
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Channel'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
