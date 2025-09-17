@@ -154,3 +154,42 @@ export function DmDialog({ open, onOpenChange }: DmDialogProps) {
       await client.from('channel_members').insert(memberInserts)
 
       const { data: channelData } = await client
+        .from('channels')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (channelData) {
+        // For group DMs, otherUser is not just one person - we'll handle display in sidebar
+        addDmChannel({ ...channelData, memberProfiles: selectedMembers })
+      }
+
+      setCurrentChannelId(id)
+      onOpenChange(false)
+    } catch (err) {
+      console.error('Failed to create group DM:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleMemberClick(member: Profile) {
+    if (selectedMembers.length === 0) {
+      // If no one selected yet, start DM directly on single click
+      await startDm(member)
+    } else {
+      // If already selecting, toggle this member
+      toggleMember(member)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Direct Messages</DialogTitle>
+        </DialogHeader>
+
+        {/* Selected members chips */}
+        {selectedMembers.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pb-1">
