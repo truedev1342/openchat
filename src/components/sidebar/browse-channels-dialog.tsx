@@ -178,3 +178,33 @@ export function BrowseChannelsDialog({ open, onOpenChange }: BrowseChannelsDialo
                         handleGoToChannel(channel.id)
                       } else {
                         // Preview channel without joining
+                        const { memberCount: _, isMember: __, ...rawChannel } = channel
+                        setPreviewChannel(rawChannel as Channel)
+                        onOpenChange(false)
+                      }
+                    }}
+                    className="text-[14px] font-semibold truncate block hover:underline cursor-pointer"
+                    style={{ color: '#2D2B3D' }}
+                  >
+                    {channel.name}
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-[11px] flex items-center gap-1"
+                      style={{ color: '#8E8EA0' }}
+                    >
+                      <Users className="h-3 w-3" />
+                      {channel.memberCount} {channel.memberCount === 1 ? 'member' : 'members'}
+                    </span>
+                    {channel.description && (
+                      <>
+                        <span style={{ color: '#C4C0D0' }}>&middot;</span>
+                        <span className="text-[11px] truncate" style={{ color: '#8E8EA0' }}>
+                          {channel.description}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {channel.isMember ? (
