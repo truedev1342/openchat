@@ -191,3 +191,99 @@ export function ChannelView({ channel, isPreview = false }: ChannelViewProps) {
           schema: 'public',
           table: 'messages',
           filter: `channel_id=eq.${channel.id}`,
+        },
+        async (payload) => {
+          if (payload.new.is_deleted) {
+            setMessages((prev) => prev.filter((m) => m.id !== payload.new.id))
+          } else {
+            const updated = await fetchMessage(payload.new.id)
+            if (updated) {
+              setMessages((prev) =>
+                prev.map((m) => (m.id === updated.id ? updated : m))
+              )
+            }
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      channelSub.unsubscribe()
+    }
+  }, [channel.id, scrollToBottom, user?.id])
+
+  async function handleSendMessage(content: string) {
+    const client = getSupabaseClient()
+    if (!client || !user) return
+
+    await client.from('messages').insert({
+      channel_id: channel.id,
+      sender_id: user.id,
+      content,
+    })
+  }
+
+  async function handleJoinPreview() {
+    const client = getSupabaseClient()
+    if (!client || !user) return
+
+    setJoiningChannel(true)
+    try {
+      await client.from('channel_members').insert({
+        channel_id: channel.id,
+        profile_id: user.id,
+        role: 'member',
+      })
+
+      // Add to sidebar and switch to it
+      addChannel(channel)
+      setPreviewChannel(null)
+      setCurrentChannelId(channel.id)
+    } catch (err) {
+      console.error('Failed to join channel:', err)
+    }
+    setJoiningChannel(false)
+  }
+
+  // Load active call for this channel
+  useEffect(() => {
+    const client = getSupabaseClient()
+    if (!client || !workspace) return
+
+    async function loadActiveCall() {
+      const { data } = await client!
+        .from('active_calls')
+        .select('*')
+        .eq('channel_id', channel.id)
+        .is('ended_at', null)
+        .order('started_at', { ascending: false })
+        .limit(1)
+
+      if (data && data.length > 0) {
+        setChannelActiveCall(channel.id, data[0] as ActiveCall)
+      } else {
+        setChannelActiveCall(channel.id, null)
+      }
+    }
+
+    loadActiveCall()
+
+    // Subscribe to active_calls changes for this channel
+    const callSub = client
+      .channel(`calls:${channel.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'active_calls',
+          filter: `channel_id=eq.${channel.id}`,
+        },
+        async (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setChannelActiveCall(channel.id, payload.new as ActiveCall)
+          } else if (payload.eventType === 'UPDATE') {
+            const call = payload.new as ActiveCall
+            if (call.ended_at) {
+              setChannelActiveCall(channel.id, null)
+            } else {
