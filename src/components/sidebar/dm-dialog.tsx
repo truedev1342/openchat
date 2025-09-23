@@ -193,3 +193,42 @@ export function DmDialog({ open, onOpenChange }: DmDialogProps) {
         {/* Selected members chips */}
         {selectedMembers.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pb-1">
+            {selectedMembers.map(member => (
+              <div
+                key={member.id}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium"
+                style={{ background: '#EDE5FF', color: '#7C5CFC' }}
+              >
+                {member.display_name}
+                <button onClick={() => toggleMember(member)} className="hover:opacity-70">
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={selectedMembers.length > 0 ? "Add more people..." : "Search people..."}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+            autoFocus
+          />
+        </div>
+
+        <div className="max-h-64 overflow-y-auto space-y-1">
+          {filtered.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              {search ? 'No members found' : 'No other members in this workspace'}
+            </p>
+          ) : (
+            filtered.map((member) => {
+              const isSelected = selectedMembers.some(m => m.id === member.id)
+              return (
+                <button
+                  key={member.id}
+                  onClick={() => handleMemberClick(member)}
+                  onContextMenu={(e) => {
