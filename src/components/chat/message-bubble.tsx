@@ -48,3 +48,54 @@ function renderMessageContent(text: string, mentionNames?: Record<string, string
   })
 }
 
+interface MessageBubbleProps {
+  message: Message
+  showHeader: boolean
+  isOwn: boolean
+  isThread?: boolean
+}
+
+export function MessageBubble({ message, showHeader, isOwn, isThread }: MessageBubbleProps) {
+  const { user, openThread, openProfile, reactions, setReactions, addReaction, removeReaction, savedItemIds, toggleSavedItem } = useAppStore()
+  const [hovered, setHovered] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showMoreMenu, setShowMoreMenu] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [editContent, setEditContent] = useState(message.content)
+  const [saveError, setSaveError] = useState(false)
+  const [mentionNames, setMentionNames] = useState<Record<string, string>>({})
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const sender = message.sender
+  const displayName = sender?.display_name || 'Unknown'
+  const initial = displayName[0]?.toUpperCase() || '?'
+  const time = formatDistanceToNow(new Date(message.created_at), { addSuffix: true })
+  const messageReactions = reactions[message.id] || []
+
+  // Resolve @mention UUIDs to display names
+  useEffect(() => {
+    const uuids = [...message.content.matchAll(/@([a-f0-9-]{36})/g)].map((m) => m[1])
+    if (uuids.length === 0) return
+
+    // Check cache first
+    const uncached = uuids.filter((id) => !mentionNameCache[id])
+    if (uncached.length === 0) {
+      setMentionNames({ ...mentionNameCache })
+      return
+    }
+
+    const client = getSupabaseClient()
+    if (!client) return
+
+    client
+      .from('profiles')
+      .select('id, display_name')
+      .in('id', uncached)
+      .then(({ data }) => {
+        if (data) {
+          const resolved: Record<string, string> = { ...mentionNameCache }
+          data.forEach((p: { id: string; display_name: string }) => {
+            mentionNameCache[p.id] = p.display_name
+            resolved[p.id] = p.display_name
+          })
+          setMentionNames(resolved)
