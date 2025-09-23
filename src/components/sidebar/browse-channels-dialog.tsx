@@ -208,3 +208,33 @@ export function BrowseChannelsDialog({ open, onOpenChange }: BrowseChannelsDialo
                 </div>
 
                 {channel.isMember ? (
+                  <span
+                    className="text-[11px] font-medium px-2 py-1 rounded-lg shrink-0 flex items-center gap-1"
+                    style={{ background: '#EDE5FF', color: '#7C5CFC' }}
+                  >
+                    <Check className="h-3 w-3" />
+                    Joined
+                  </span>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => handleJoin(channel)}
+                    disabled={joiningId === channel.id}
+                    className="shrink-0 text-[12px] h-7"
+                    style={{ background: '#7C5CFC', color: '#fff' }}
+                  >
+                    {joiningId === channel.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      'Join'
+                    )}
+                  </Button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
