@@ -232,3 +232,42 @@ export function DmDialog({ open, onOpenChange }: DmDialogProps) {
                   key={member.id}
                   onClick={() => handleMemberClick(member)}
                   onContextMenu={(e) => {
+                    e.preventDefault()
+                    toggleMember(member)
+                  }}
+                  disabled={loading}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted transition-colors text-left"
+                >
+                  <div className="relative">
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                      {member.avatar_url ? (
+                        <img src={member.avatar_url} alt={member.display_name} className="h-8 w-8 rounded-lg object-cover" />
+                      ) : (
+                        member.display_name[0]?.toUpperCase() || '?'
+                      )}
+                    </div>
+                    <Circle
+                      className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 ${
+                        member.is_online
+                          ? 'fill-green-500 text-green-500'
+                          : 'fill-muted-foreground/30 text-muted-foreground/30'
+                      }`}
+                      strokeWidth={3}
+                      stroke="hsl(var(--background))"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{member.display_name}</p>
+                    {member.email && (
+                      <p className="text-xs text-muted-foreground truncate">{member.email}</p>
+                    )}
+                  </div>
+                  {/* Multi-select checkbox icon */}
+                  <div
+                    role="checkbox"
+                    aria-checked={isSelected}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleMember(member)
+                    }}
+                    className={`h-5 w-5 rounded border flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
