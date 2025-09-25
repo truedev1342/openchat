@@ -287,3 +287,100 @@ export function ChannelView({ channel, isPreview = false }: ChannelViewProps) {
             if (call.ended_at) {
               setChannelActiveCall(channel.id, null)
             } else {
+              setChannelActiveCall(channel.id, call)
+            }
+          } else if (payload.eventType === 'DELETE') {
+            setChannelActiveCall(channel.id, null)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      callSub.unsubscribe()
+    }
+  }, [channel.id, workspace])
+
+  async function handleStartOrJoinCall() {
+    const client = getSupabaseClient()
+    if (!client || !user || !workspace || isInCall) return
+
+    setStartingCall(true)
+
+    // Pre-flight: check if LiveKit is configured before creating any DB records
+    if (!channelCall) {
+      const { data: settings } = await client
+        .from('workspace_settings')
+        .select('*')
+        .eq('workspace_id', workspace.id)
+        .single()
+
+      if (!settings?.calls_enabled || !settings?.livekit_url || !settings?.livekit_api_key || !settings?.livekit_api_secret) {
+        setCallSetupOpen(true)
+        setStartingCall(false)
+        return
+      }
+    }
+
+    let createdNewCall = false
+    let call = channelCall
+
+    try {
+      // First, check if LiveKit is configured by requesting a pre-flight check
+      const { data: { session } } = await client.auth.getSession()
+      if (!session) throw new Error('No session')
+
+      // If no active call, create one
+      if (!call) {
+        const roomName = `${workspace.id}-${channel.id}-${Date.now()}`
+        const { data: newCall, error } = await client
+          .from('active_calls')
+          .insert({
+            channel_id: channel.id,
+            workspace_id: workspace.id,
+            type: 'huddle',
+            livekit_room_name: roomName,
+            started_by: user.id,
+          })
+          .select()
+          .single()
+
+        if (error) throw error
+        call = newCall as ActiveCall
+        createdNewCall = true
+        setChannelActiveCall(channel.id, call)
+      }
+
+      // Add participant record
+      await client
+        .from('call_participants')
+        .upsert({
+          call_id: call.id,
+          profile_id: user.id,
+          joined_at: new Date().toISOString(),
+          left_at: null,
+          is_muted: false,
+          is_camera_on: false,
+          is_sharing_screen: false,
+        })
+
+      // Request LiveKit token from API
+      const response = await fetch('/api/livekit/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          roomName: call.livekit_room_name,
+          workspaceId: workspace.id,
+          identity: user.id,
+          displayName: user.display_name,
+        }),
+      })
+
+      if (!response.ok) {
+        const errData = await response.json()
+        throw new Error(errData.error || 'Failed to get call token')
+      }
+
