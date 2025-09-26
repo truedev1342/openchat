@@ -99,3 +99,54 @@ export function MessageBubble({ message, showHeader, isOwn, isThread }: MessageB
             resolved[p.id] = p.display_name
           })
           setMentionNames(resolved)
+        }
+      })
+  }, [message.content])
+
+  useEffect(() => {
+    const client = getSupabaseClient()
+    if (!client) return
+    client
+      .from('reactions')
+      .select('*')
+      .eq('message_id', message.id)
+      .then(({ data }) => {
+        if (data) setReactions(message.id, data as Reaction[])
+      })
+  }, [message.id])
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowEmojiPicker(false)
+        setShowMoreMenu(false)
+      }
+    }
+    if (showEmojiPicker || showMoreMenu) {
+      document.addEventListener('mousedown', handleClick)
+      return () => document.removeEventListener('mousedown', handleClick)
+    }
+  }, [showEmojiPicker, showMoreMenu])
+
+  async function handleReaction(emoji: string) {
+    const client = getSupabaseClient()
+    if (!client || !user) return
+
+    const existing = messageReactions.find(
+      (r) => r.emoji === emoji && r.profile_id === user.id
+    )
+
+    if (existing) {
+      await client.from('reactions').delete().eq('id', existing.id)
+      removeReaction(message.id, existing.id)
+    } else {
+      const { data } = await client
+        .from('reactions')
+        .insert({ message_id: message.id, profile_id: user.id, emoji })
+        .select()
+        .single()
+      if (data) addReaction(message.id, data as Reaction)
+    }
+    setShowEmojiPicker(false)
+  }
+
