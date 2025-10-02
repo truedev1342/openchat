@@ -384,3 +384,99 @@ export function ChannelView({ channel, isPreview = false }: ChannelViewProps) {
         throw new Error(errData.error || 'Failed to get call token')
       }
 
+      const { token, url } = await response.json()
+      joinCall(call, token, url)
+    } catch (err) {
+      console.error('Failed to start/join call:', err)
+
+      // Cleanup: if we created a new call but token failed, end the call
+      if (createdNewCall && call) {
+        try {
+          await client
+            .from('active_calls')
+            .update({ ended_at: new Date().toISOString() })
+            .eq('id', call.id)
+        } catch { /* ignore cleanup errors */ }
+        setChannelActiveCall(channel.id, null)
+      } else if (call) {
+        // Just remove our participant
+        try {
+          await client
+            .from('call_participants')
+            .update({ left_at: new Date().toISOString() })
+            .eq('call_id', call.id)
+            .eq('profile_id', user.id)
+        } catch { /* ignore cleanup errors */ }
+      }
+
+      alert(err instanceof Error ? err.message : 'Failed to start call')
+    }
+    setStartingCall(false)
+  }
+
+  return (
+    <div className="flex-1 flex h-full">
+      {/* Main channel area */}
+      <div className="flex-1 flex flex-col h-full min-w-0" style={{ background: '#ffffff' }}>
+        {/* Channel header */}
+        <div className="px-5 py-3 flex items-center justify-between shrink-0" style={{ background: '#ffffff', borderBottom: '1px solid #E5E1EE' }}>
+          <div className="flex items-center gap-2.5">
+            {!isDesktop && (
+              <button
+                onClick={toggleSidebar}
+                className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-[#F5F2FF] transition-colors mr-1"
+              >
+                <Menu className="h-5 w-5" style={{ color: '#8E8EA0' }} />
+              </button>
+            )}
+            {isGroupDm ? (
+              <>
+                <div className="relative h-7 w-7 shrink-0">
+                  {dmInfo?.memberProfiles?.[0]?.avatar_url ? (
+                    <img src={dmInfo.memberProfiles[0].avatar_url} alt="" className="absolute top-0 left-0 h-[18px] w-[18px] rounded-md object-cover border-2 border-white" />
+                  ) : (
+                    <div className="absolute top-0 left-0 h-[18px] w-[18px] rounded-md flex items-center justify-center text-[8px] font-bold text-white border-2 border-white" style={{ background: '#7C5CFC' }}>
+                      {dmInfo?.memberProfiles?.[0]?.display_name?.[0]?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  {dmInfo?.memberProfiles?.[1]?.avatar_url ? (
+                    <img src={dmInfo.memberProfiles[1].avatar_url} alt="" className="absolute bottom-0 right-0 h-[18px] w-[18px] rounded-md object-cover border-2 border-white" />
+                  ) : (
+                    <div className="absolute bottom-0 right-0 h-[18px] w-[18px] rounded-md flex items-center justify-center text-[8px] font-bold text-white border-2 border-white" style={{ background: '#9B7DFF' }}>
+                      {dmInfo?.memberProfiles?.[1]?.display_name?.[0]?.toUpperCase() || '+'}
+                    </div>
+                  )}
+                </div>
+                <h2 className="font-bold text-[17px] truncate max-w-md" style={{ color: '#2D2B3D' }}>
+                  {displayChannelName}
+                </h2>
+                <span className="text-xs shrink-0 px-1.5 py-0.5 rounded-full font-medium" style={{ background: '#EDE5FF', color: '#7C5CFC' }}>
+                  {(dmInfo?.memberProfiles?.length || 0) + 1}
+                </span>
+              </>
+            ) : isDm ? (
+              <>
+                {dmInfo?.otherUser?.avatar_url ? (
+                  <img
+                    src={dmInfo.otherUser.avatar_url}
+                    alt={displayChannelName}
+                    className="h-7 w-7 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="h-7 w-7 rounded-lg flex items-center justify-center text-xs font-bold text-white" style={{ background: '#7C5CFC' }}>
+                    {dmInfo?.otherUser?.display_name?.[0]?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <button
+                  onClick={() => dmInfo?.otherUser?.id && openProfile(dmInfo.otherUser.id)}
+                  className="font-bold text-[17px] hover:underline cursor-pointer"
+                  style={{ color: '#2D2B3D' }}
+                >
+                  {displayChannelName}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ background: '#EDE5FF' }}>
+                  {channel.is_private ? (
+                    <Lock className="h-4 w-4" style={{ color: '#7C5CFC' }} />
