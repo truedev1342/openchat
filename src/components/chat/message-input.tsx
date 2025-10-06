@@ -79,3 +79,85 @@ export function MessageInput({ channelId, channelName, onSend, placeholder }: Me
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [showSendMenu, setShowSendMenu] = useState(false)
 
+  // Keep ref in sync with state so TipTap suggestion callback always sees latest
+  useEffect(() => {
+    membersRef.current = members
+  }, [members])
+
+  // Keep slash picker ref in sync
+  useEffect(() => {
+    showSlashPickerRef.current = showSlashPicker
+  }, [showSlashPicker])
+
+  // Load channel members (or workspace members as fallback) for @mentions
+  useEffect(() => {
+    const client = getSupabaseClient()
+    if (!client || !workspace) return
+
+    async function loadMembers() {
+      if (channelId) {
+        // Load members of the current channel
+        const { data } = await client!
+          .from('channel_members')
+          .select('profile:profiles(*)')
+          .eq('channel_id', channelId)
+
+        if (data && data.length > 0) {
+          const profiles = data
+            .map((d: Record<string, unknown>) => d.profile as Profile)
+            .filter(Boolean)
+          setMembers(profiles)
+          return
+        }
+      }
+
+      // Fallback: load all workspace members
+      const { data } = await client!
+        .from('workspace_members')
+        .select('profile:profiles(*)')
+        .eq('workspace_id', workspace!.id)
+
+      if (data) {
+        const profiles = data
+          .map((d: Record<string, unknown>) => d.profile as Profile)
+          .filter(Boolean)
+        setMembers(profiles)
+      }
+    }
+
+    loadMembers()
+  }, [workspace, channelId])
+
+  // Custom Enter key extension
+  const EnterSubmit = Extension.create({
+    name: 'enterSubmit',
+    addKeyboardShortcuts() {
+      return {
+        Enter: ({ editor }) => {
+          // Shift+Enter for newline
+          return false // let default handle, we check in onKeyDown
+        },
+      }
+    },
+  })
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: false,
+        horizontalRule: false,
+        blockquote: false,
+        bulletList: false,
+        orderedList: false,
+        listItem: false,
+      }),
+      Placeholder.configure({
+        placeholder: placeholder || `Message #${channelName}`,
+      }),
+      Mention.configure({
+        HTMLAttributes: {
+          class: 'mention',
+        },
+        suggestion: {
+          items: ({ query }: { query: string }) => {
+            return membersRef.current
