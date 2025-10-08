@@ -150,3 +150,54 @@ export function MessageBubble({ message, showHeader, isOwn, isThread }: MessageB
     setShowEmojiPicker(false)
   }
 
+  async function handleEdit() {
+    const client = getSupabaseClient()
+    if (!client || !editContent.trim()) return
+    await client.from('messages').update({ content: editContent.trim(), is_edited: true }).eq('id', message.id)
+    message.content = editContent.trim()
+    message.is_edited = true
+    setEditing(false)
+  }
+
+  async function handleDelete() {
+    const client = getSupabaseClient()
+    if (!client) return
+    await client.from('messages').update({ is_deleted: true }).eq('id', message.id)
+    setShowMoreMenu(false)
+  }
+
+  const grouped = messageReactions.reduce<
+    Record<string, { emoji: string; count: number; myReaction: boolean }>
+  >((acc, r) => {
+    if (!acc[r.emoji]) acc[r.emoji] = { emoji: r.emoji, count: 0, myReaction: false }
+    acc[r.emoji].count++
+    if (r.profile_id === user?.id) acc[r.emoji].myReaction = true
+    return acc
+  }, {})
+
+  const showToolbar = hovered || showEmojiPicker || showMoreMenu
+
+  return (
+    <div ref={containerRef}>
+      <div
+        className={`relative flex gap-2.5 px-3 -mx-3 rounded-xl ${showHeader ? 'pt-2 py-1' : 'py-0.5'} ${showToolbar ? 'bg-[#F5F2FF]' : 'hover:bg-[#F5F2FF]'}`}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        {/* ACTION TOOLBAR */}
+        {showToolbar && !editing && (
+          <div className="absolute top-0 right-2 flex items-center bg-white border border-[#E5E1EE] rounded-xl shadow-sm z-10 -translate-y-1/2">
+            {QUICK_REACTIONS.slice(0, 3).map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => handleReaction(emoji)}
+                className="h-8 w-8 flex items-center justify-center hover:bg-[#F5F2FF] rounded-xl text-sm transition-colors"
+                title={`React with ${emoji}`}
+              >
+                {emoji}
+              </button>
+            ))}
+            <div className="relative">
+              <button
+                onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowMoreMenu(false) }}
+                className="h-8 w-8 flex items-center justify-center hover:bg-[#F5F2FF] rounded-xl transition-colors text-[#8E8EA0]"

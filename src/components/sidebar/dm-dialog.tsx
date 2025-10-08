@@ -271,3 +271,42 @@ export function DmDialog({ open, onOpenChange }: DmDialogProps) {
                       toggleMember(member)
                     }}
                     className={`h-5 w-5 rounded border flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#7C5CFC] border-[#7C5CFC] text-white'
+                        : 'border-[#DDD6F3] hover:border-[#7C5CFC]'
+                    }`}
+                  >
+                    {isSelected && <Check className="h-3 w-3" />}
+                  </div>
+                </button>
+              )
+            })
+          )}
+        </div>
+
+        {/* Create group button */}
+        {selectedMembers.length >= 2 && (
+          <Button
+            onClick={startGroupDm}
+            disabled={loading}
+            className="w-full"
+            style={{ background: '#7C5CFC', color: '#fff' }}
+          >
+            <Users className="h-4 w-4 mr-2" />
+            Create Group DM ({selectedMembers.length + 1} people)
+          </Button>
+        )}
+        {selectedMembers.length === 1 && (
+          <Button
+            onClick={() => startDm(selectedMembers[0])}
+            disabled={loading}
+            className="w-full"
+            style={{ background: '#7C5CFC', color: '#fff' }}
+          >
+            Message {selectedMembers[0].display_name}
+          </Button>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
