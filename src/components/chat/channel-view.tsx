@@ -480,3 +480,100 @@ export function ChannelView({ channel, isPreview = false }: ChannelViewProps) {
                 <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ background: '#EDE5FF' }}>
                   {channel.is_private ? (
                     <Lock className="h-4 w-4" style={{ color: '#7C5CFC' }} />
+                  ) : (
+                    <Hash className="h-4 w-4" style={{ color: '#7C5CFC' }} />
+                  )}
+                </div>
+                <h2 className="font-bold text-[17px]" style={{ color: '#2D2B3D' }}>{channel.name}</h2>
+                {channel.description && (
+                  <>
+                    <span style={{ color: '#E5E1EE' }}>|</span>
+                    <span className="text-sm truncate max-w-md" style={{ color: '#8E8EA0' }}>
+                      {channel.description}
+                    </span>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            {/* Call button */}
+            {!isPreview && (
+              <>
+                {channelCall ? (
+                  <button
+                    onClick={handleStartOrJoinCall}
+                    disabled={startingCall || isInCall}
+                    className="h-8 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-colors text-[12px] font-semibold"
+                    style={{ background: '#DCFCE7', color: '#16A34A' }}
+                    title="Join active call"
+                  >
+                    {startingCall ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <>
+                        <Phone className="h-3.5 w-3.5" />
+                        <span className="h-2 w-2 rounded-full animate-pulse" style={{ background: '#16A34A' }} />
+                        Join
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleStartOrJoinCall}
+                    disabled={startingCall || isInCall}
+                    className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-[#F5F2FF] transition-colors"
+                    title="Start a call"
+                  >
+                    {startingCall ? (
+                      <Loader2 className="h-4 w-4 animate-spin" style={{ color: '#7C5CFC' }} />
+                    ) : (
+                      <Phone className="h-4 w-4" style={{ color: '#8E8EA0' }} />
+                    )}
+                  </button>
+                )}
+              </>
+            )}
+            {!isDirectMessage && (
+              <button
+                onClick={() => setChannelSettingsOpen(true)}
+                className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-[#F5F2FF] transition-colors"
+                title="Channel settings & members"
+              >
+                <Users className="h-4 w-4" style={{ color: '#8E8EA0' }} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5">
+          <div className="py-4 space-y-0.5">
+            {loadingMore && (
+              <div className="flex items-center justify-center py-3">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" style={{ color: '#7C5CFC' }} />
+                <span className="text-xs" style={{ color: '#8E8EA0' }}>Loading older messages...</span>
+              </div>
+            )}
+
+            {!hasMore && messages.length > 0 && (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                {isDirectMessage ? (
+                  <>
+                    {isGroupDm ? (
+                      <div className="relative h-14 w-14 mb-3">
+                        {dmInfo?.memberProfiles?.[0]?.avatar_url ? (
+                          <img src={dmInfo.memberProfiles[0].avatar_url} alt="" className="absolute top-0 left-0 h-9 w-9 rounded-xl object-cover border-2 border-white" />
+                        ) : (
+                          <div className="absolute top-0 left-0 h-9 w-9 rounded-xl flex items-center justify-center text-sm font-bold text-white border-2 border-white" style={{ background: '#7C5CFC' }}>
+                            {dmInfo?.memberProfiles?.[0]?.display_name?.[0]?.toUpperCase() || '?'}
+                          </div>
+                        )}
+                        {dmInfo?.memberProfiles?.[1]?.avatar_url ? (
+                          <img src={dmInfo.memberProfiles[1].avatar_url} alt="" className="absolute bottom-0 right-0 h-9 w-9 rounded-xl object-cover border-2 border-white" />
+                        ) : (
+                          <div className="absolute bottom-0 right-0 h-9 w-9 rounded-xl flex items-center justify-center text-sm font-bold text-white border-2 border-white" style={{ background: '#9B7DFF' }}>
+                            {dmInfo?.memberProfiles?.[1]?.display_name?.[0]?.toUpperCase() || '+'}
+                          </div>
+                        )}
+                      </div>
