@@ -161,3 +161,84 @@ export function MessageInput({ channelId, channelName, onSend, placeholder }: Me
         suggestion: {
           items: ({ query }: { query: string }) => {
             return membersRef.current
+              .filter((m) =>
+                m.display_name.toLowerCase().includes(query.toLowerCase())
+              )
+              .slice(0, 8)
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          render: () => {
+            let popup: HTMLDivElement | null = null
+            let selectedIndex = 0
+            let items: Profile[] = []
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let command: any = null
+
+            // SECURITY: Escape HTML entities to prevent XSS via display names
+            function escapeHtml(str: string): string {
+              return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;')
+            }
+
+            function updatePopup() {
+              if (!popup) return
+              popup.innerHTML = items
+                .map(
+                  (item, i) => {
+                    const safeName = escapeHtml(item.display_name || '')
+                    const initial = escapeHtml(item.display_name?.[0]?.toUpperCase() || '?')
+                    return `<button class="mention-item ${i === selectedIndex ? 'is-selected' : ''}" data-index="${i}">
+                      <span class="mention-avatar">${initial}</span>
+                      <span>${safeName}</span>
+                    </button>`
+                  }
+                )
+                .join('')
+
+              popup.querySelectorAll('.mention-item').forEach((btn) => {
+                btn.addEventListener('mousedown', (e) => {
+                  e.preventDefault()
+                  const idx = parseInt((btn as HTMLElement).dataset.index || '0')
+                  const item = items[idx]
+                  if (item && command) {
+                    command({ id: item.id, label: item.display_name })
+                  }
+                })
+              })
+            }
+
+            return {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onStart: (props: any) => {
+                items = props.items
+                command = props.command
+                selectedIndex = 0
+
+                popup = document.createElement('div')
+                popup.className = 'mention-popup'
+                document.body.appendChild(popup)
+
+                updatePopup()
+
+                if (props.clientRect) {
+                  const rect = props.clientRect?.()
+                  if (rect && popup) {
+                    popup.style.left = `${rect.left}px`
+                    popup.style.top = `${rect.top - popup.offsetHeight - 8}px`
+                  }
+                }
+              },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onUpdate: (props: any) => {
+                items = props.items
+                selectedIndex = 0
+                updatePopup()
+
+                if (props.clientRect && popup) {
+                  const rect = props.clientRect?.()
+                  if (rect) {
+                    popup.style.left = `${rect.left}px`
