@@ -201,3 +201,53 @@ export function MessageBubble({ message, showHeader, isOwn, isThread }: MessageB
               <button
                 onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowMoreMenu(false) }}
                 className="h-8 w-8 flex items-center justify-center hover:bg-[#F5F2FF] rounded-xl transition-colors text-[#8E8EA0]"
+                title="Add reaction"
+              >
+                <Smile className="h-4 w-4" />
+              </button>
+              {showEmojiPicker && (
+                <div className="absolute right-0 top-9 z-50">
+                  <EmojiPicker onSelect={handleReaction} onClose={() => setShowEmojiPicker(false)} />
+                </div>
+              )}
+            </div>
+            {!isThread && (
+              <button
+                onClick={() => openThread(message)}
+                className="h-8 w-8 flex items-center justify-center hover:bg-[#F5F2FF] rounded-xl transition-colors text-[#8E8EA0]"
+                title="Reply in thread"
+              >
+                <MessageSquare className="h-4 w-4" />
+              </button>
+            )}
+            <button
+              onClick={async () => {
+                const client = getSupabaseClient()
+                if (!client || !user) return
+                const isSaved = savedItemIds.has(message.id)
+                try {
+                  if (isSaved) {
+                    const { error } = await client.from('saved_items').delete().eq('message_id', message.id).eq('user_id', user.id)
+                    if (error) throw error
+                    toggleSavedItem(message.id)
+                  } else {
+                    const workspaceId = useAppStore.getState().workspace?.id
+                    if (!workspaceId) return
+                    const { error } = await client.from('saved_items').insert({
+                      user_id: user.id,
+                      message_id: message.id,
+                      workspace_id: workspaceId,
+                    })
+                    if (error) throw error
+                    toggleSavedItem(message.id)
+                  }
+                } catch (err) {
+                  console.error('Failed to save/unsave item:', err)
+                  setSaveError(true)
+                  setTimeout(() => setSaveError(false), 3000)
+                }
+              }}
+              className={`h-8 w-8 flex items-center justify-center hover:bg-[#F5F2FF] rounded-xl transition-colors ${
+                savedItemIds.has(message.id) ? 'text-[#7C5CFC]' : 'text-[#8E8EA0]'
+              }`}
+              title={savedItemIds.has(message.id) ? 'Remove from saved' : 'Save message'}
