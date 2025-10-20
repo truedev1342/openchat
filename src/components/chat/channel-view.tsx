@@ -577,3 +577,99 @@ export function ChannelView({ channel, isPreview = false }: ChannelViewProps) {
                           </div>
                         )}
                       </div>
+                    ) : (
+                      <div className="h-14 w-14 rounded-2xl flex items-center justify-center text-xl font-bold text-white mb-3" style={{ background: '#7C5CFC' }}>
+                        {dmInfo?.otherUser?.avatar_url ? (
+                          <img src={dmInfo.otherUser.avatar_url} alt="" className="h-14 w-14 rounded-2xl object-cover" />
+                        ) : (
+                          dmInfo?.otherUser?.display_name?.[0]?.toUpperCase() || '?'
+                        )}
+                      </div>
+                    )}
+                    <h3 className="text-base font-bold" style={{ color: '#2D2B3D' }}>{displayChannelName}</h3>
+                    <p className="text-sm" style={{ color: '#8E8EA0' }}>
+                      This is the beginning of your conversation.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: '#EDE5FF' }}>
+                      <Hash className="h-7 w-7" style={{ color: '#7C5CFC' }} />
+                    </div>
+                    <h3 className="text-base font-bold" style={{ color: '#2D2B3D' }}>Welcome to #{channel.name}!</h3>
+                    <p className="text-sm" style={{ color: '#8E8EA0' }}>
+                      This is the start of the #{channel.name} channel.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
+
+            {loading ? (
+              <div className="flex items-center justify-center py-12" style={{ color: '#8E8EA0' }}>
+                <Loader2 className="h-5 w-5 animate-spin mr-2" style={{ color: '#7C5CFC' }} />
+                Loading messages...
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                {isDirectMessage ? (
+                  <>
+                    {isGroupDm ? (
+                      <div className="relative h-16 w-16 mb-4">
+                        {dmInfo?.memberProfiles?.[0]?.avatar_url ? (
+                          <img src={dmInfo.memberProfiles[0].avatar_url} alt="" className="absolute top-0 left-0 h-10 w-10 rounded-xl object-cover border-2 border-white" />
+                        ) : (
+                          <div className="absolute top-0 left-0 h-10 w-10 rounded-xl flex items-center justify-center text-lg font-bold text-white border-2 border-white" style={{ background: '#7C5CFC' }}>
+                            {dmInfo?.memberProfiles?.[0]?.display_name?.[0]?.toUpperCase() || '?'}
+                          </div>
+                        )}
+                        {dmInfo?.memberProfiles?.[1]?.avatar_url ? (
+                          <img src={dmInfo.memberProfiles[1].avatar_url} alt="" className="absolute bottom-0 right-0 h-10 w-10 rounded-xl object-cover border-2 border-white" />
+                        ) : (
+                          <div className="absolute bottom-0 right-0 h-10 w-10 rounded-xl flex items-center justify-center text-lg font-bold text-white border-2 border-white" style={{ background: '#9B7DFF' }}>
+                            {dmInfo?.memberProfiles?.[1]?.display_name?.[0]?.toUpperCase() || '+'}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="h-16 w-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mb-4" style={{ background: '#7C5CFC' }}>
+                        {dmInfo?.otherUser?.avatar_url ? (
+                          <img src={dmInfo.otherUser.avatar_url} alt="" className="h-16 w-16 rounded-2xl object-cover" />
+                        ) : (
+                          dmInfo?.otherUser?.display_name?.[0]?.toUpperCase() || '?'
+                        )}
+                      </div>
+                    )}
+                    <h3 className="text-lg font-bold" style={{ color: '#2D2B3D' }}>{displayChannelName}</h3>
+                    <p style={{ color: '#8E8EA0' }}>
+                      {isGroupDm
+                        ? 'This is the start of your group conversation.'
+                        : `This is the start of your conversation with ${displayChannelName}.`
+                      }
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="h-16 w-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: '#EDE5FF' }}>
+                      <Hash className="h-8 w-8" style={{ color: '#7C5CFC' }} />
+                    </div>
+                    <h3 className="text-lg font-bold" style={{ color: '#2D2B3D' }}>Welcome to #{channel.name}!</h3>
+                    <p style={{ color: '#8E8EA0' }}>
+                      This is the start of the #{channel.name} channel.
+                      {channel.description && ` ${channel.description}`}
+                    </p>
+                  </>
+                )}
+              </div>
+            ) : (
+              messages.map((message, i) => {
+                const prevMessage = i > 0 ? messages[i - 1] : null
+                const showHeader =
+                  !prevMessage ||
+                  prevMessage.sender_id !== message.sender_id ||
+                  new Date(message.created_at).getTime() -
+                    new Date(prevMessage.created_at).getTime() >
+                    5 * 60 * 1000
+
+                return (
+                  <MessageBubble
