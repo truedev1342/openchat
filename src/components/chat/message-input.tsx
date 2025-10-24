@@ -242,3 +242,85 @@ export function MessageInput({ channelId, channelName, onSend, placeholder }: Me
                   const rect = props.clientRect?.()
                   if (rect) {
                     popup.style.left = `${rect.left}px`
+                    popup.style.top = `${rect.top - popup.offsetHeight - 8}px`
+                  }
+                }
+              },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onKeyDown: (props: any) => {
+                if (props.event.key === 'ArrowUp') {
+                  selectedIndex = (selectedIndex - 1 + items.length) % items.length
+                  updatePopup()
+                  return true
+                }
+                if (props.event.key === 'ArrowDown') {
+                  selectedIndex = (selectedIndex + 1) % items.length
+                  updatePopup()
+                  return true
+                }
+                if (props.event.key === 'Enter') {
+                  const item = items[selectedIndex]
+                  if (item && command) {
+                    command({ id: item.id, label: item.display_name })
+                  }
+                  return true
+                }
+                return false
+              },
+              onExit: () => {
+                if (popup) {
+                  popup.remove()
+                  popup = null
+                }
+              },
+            }
+          },
+        },
+      }),
+    ],
+    onUpdate: ({ editor }) => {
+      const text = editor.getText()
+      if (text.startsWith('/') && !text.includes(' ')) {
+        setSlashQuery(text)
+        setShowSlashPicker(true)
+        // Position the picker above the input
+        const editorEl = editor.view.dom.closest('.rounded-2xl')
+        if (editorEl) {
+          const rect = editorEl.getBoundingClientRect()
+          setSlashPosition({ left: rect.left + 16, bottom: window.innerHeight - rect.top + 8 })
+        }
+      } else {
+        setShowSlashPicker(false)
+      }
+    },
+    editorProps: {
+      attributes: {
+        class: 'tiptap-editor',
+      },
+      handleKeyDown: (_view, event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          // Check if mention popup is open
+          const mentionPopup = document.querySelector('.mention-popup')
+          if (mentionPopup) return false // Let mention handle it
+
+          // Don't submit if slash picker is open (handled by picker's keydown)
+          if (showSlashPickerRef.current) {
+            return false
+          }
+
+          event.preventDefault()
+          handleSend()
+          return true
+        }
+        return false
+      },
+    },
+    content: '',
+    immediatelyRender: false,
+  })
+
+  // Update placeholder when prop changes
+  useEffect(() => {
+    if (editor) {
+      editor.extensionManager.extensions
+        .filter((ext) => ext.name === 'placeholder')
