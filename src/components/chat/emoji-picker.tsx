@@ -50,3 +50,29 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
             className={`text-xs px-2 py-1 rounded transition-colors ${
               activeCategory === i
                 ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            {cat.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Emoji grid */}
+      <div className="grid grid-cols-8 gap-0.5 max-h-48 overflow-y-auto">
+        {filteredCategories[activeCategory]?.emojis.map((emoji) => (
+          <button
+            key={emoji}
+            onClick={() => {
+              onSelect(emoji)
+              onClose()
+            }}
+            className="h-8 w-8 flex items-center justify-center rounded hover:bg-muted text-lg transition-colors"
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
