@@ -251,3 +251,54 @@ export function MessageBubble({ message, showHeader, isOwn, isThread }: MessageB
                 savedItemIds.has(message.id) ? 'text-[#7C5CFC]' : 'text-[#8E8EA0]'
               }`}
               title={savedItemIds.has(message.id) ? 'Remove from saved' : 'Save message'}
+            >
+              <Bookmark className={`h-4 w-4 ${savedItemIds.has(message.id) ? 'fill-current' : ''}`} />
+            </button>
+            {saveError && (
+              <div className="absolute right-0 top-9 bg-red-50 border border-red-200 text-red-600 text-[11px] px-2 py-1 rounded-lg whitespace-nowrap z-50 shadow-sm">
+                Failed — open Saved Items panel to fix
+              </div>
+            )}
+            <div className="relative">
+              <button
+                onClick={() => { setShowMoreMenu(!showMoreMenu); setShowEmojiPicker(false) }}
+                className="h-8 w-8 flex items-center justify-center hover:bg-[#F5F2FF] rounded-xl transition-colors text-[#8E8EA0]"
+                title="More actions"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+              {showMoreMenu && (
+                <div className="absolute right-0 top-9 bg-white border border-[#E5E1EE] rounded-xl shadow-lg py-1 min-w-[180px] z-50">
+                  {isOwn && (
+                    <button
+                      onClick={() => { setEditing(true); setEditContent(message.content); setShowMoreMenu(false) }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[#F5F2FF] text-left text-[#2D2B3D] rounded-lg mx-0"
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> Edit message
+                    </button>
+                  )}
+                  {!isThread && (
+                    <button
+                      onClick={() => { openThread(message); setShowMoreMenu(false) }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[#F5F2FF] text-left text-[#2D2B3D] rounded-lg"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" /> Reply in thread
+                    </button>
+                  )}
+                  {isOwn && (
+                    <button
+                      onClick={handleDelete}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 text-[#E55B5B] text-left rounded-lg"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Delete message
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* AVATAR / TIMESTAMP */}
+        {showHeader ? (
+          <button
