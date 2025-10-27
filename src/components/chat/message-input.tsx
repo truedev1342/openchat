@@ -324,3 +324,84 @@ export function MessageInput({ channelId, channelName, onSend, placeholder }: Me
     if (editor) {
       editor.extensionManager.extensions
         .filter((ext) => ext.name === 'placeholder')
+        .forEach((ext) => {
+          (ext.options as { placeholder: string }).placeholder = placeholder || `Message #${channelName}`
+          editor.view.dispatch(editor.state.tr)
+        })
+    }
+  }, [channelName, placeholder, editor])
+
+  const handleSend = useCallback(async () => {
+    if (!editor || sending) return
+
+    const html = editor.getHTML()
+    const content = htmlToContent(html)
+    if (!content.trim() && attachments.length === 0) return
+
+    // Build final content with attachments
+    let finalContent = content
+    if (attachments.length > 0) {
+      const fileLines = attachments.map((a) => `📎 [${a.name}](${a.url})`).join('\n')
+      finalContent = finalContent ? `${finalContent}\n${fileLines}` : fileLines
+    }
+
+    setSending(true)
+    try {
+      await onSend(finalContent)
+      editor.commands.clearContent()
+      setAttachments([])
+    } finally {
+      setSending(false)
+      editor.commands.focus()
+    }
+  }, [editor, sending, onSend, attachments])
+
+  function handleSlashCommand(command: BuiltinCommand | SlashCommand) {
+    if (!editor) return
+    setShowSlashPicker(false)
+
+    if ('handler' in command) {
+      // Built-in command
+      const currentText = editor.getText()
+      const args = currentText.slice(command.command.length).trim()
+      const result = command.handler(args)
+
+      if (result.type === 'replace') {
+        editor.commands.clearContent()
+        // Set the content and send
+        editor.commands.setContent(`<p>${result.text}</p>`)
+        // Auto-send
+        setTimeout(() => handleSend(), 50)
+      }
+    } else {
+      // Custom slash command (from DB) - send as is for now
+      const text = `/${command.command}`
+      editor.commands.clearContent()
+      editor.commands.setContent(`<p>${text}</p>`)
+      setTimeout(() => handleSend(), 50)
+    }
+  }
+
+  // File upload handler — uses server-side API route to bypass RLS
+  async function uploadFiles(files: FileList | File[]) {
+    setUploading(true)
+    const newAttachments: { name: string; url: string }[] = []
+
+    // Get auth session for upload authentication
+    const client = getSupabaseClient()
+    const session = client ? (await client.auth.getSession()).data.session : null
+
+    for (const file of Array.from(files)) {
+      try {
+        const ext = file.name.split('.').pop()
+        const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+        const path = `uploads/${safeName}`
+
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('bucket', 'attachments')
+        formData.append('path', path)
+
+        const headers: Record<string, string> = {}
+        if (session?.access_token) {
+          headers.Authorization = `Bearer ${session.access_token}`

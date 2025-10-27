@@ -673,3 +673,100 @@ export function ChannelView({ channel, isPreview = false }: ChannelViewProps) {
 
                 return (
                   <MessageBubble
+                    key={message.id}
+                    message={message}
+                    showHeader={showHeader}
+                    isOwn={message.sender_id === user?.id}
+                  />
+                )
+              })
+            )}
+            <div ref={bottomRef} />
+          </div>
+        </div>
+
+        {/* Active call banner */}
+        {!isPreview && channelCall && !isInCall && (
+          <div className="px-5 py-2 shrink-0" style={{ borderTop: '1px solid #E5E1EE' }}>
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl" style={{ background: '#DCFCE7' }}>
+              <div className="h-2.5 w-2.5 rounded-full animate-pulse shrink-0" style={{ background: '#16A34A' }} />
+              <span className="text-[13px] font-medium flex-1" style={{ color: '#166534' }}>
+                {isDirectMessage ? `${displayChannelName} is in a call` : 'A call is in progress in this channel'}
+              </span>
+              <button
+                onClick={handleStartOrJoinCall}
+                disabled={startingCall}
+                className="px-4 py-1.5 rounded-lg text-[12px] font-semibold text-white transition-all hover:opacity-90 flex items-center gap-1.5"
+                style={{ background: '#16A34A' }}
+              >
+                {startingCall ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Phone className="h-3 w-3" />
+                )}
+                Join Call
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Message input or Join banner */}
+        {isPreview ? (
+          <div className="px-5 py-4 shrink-0" style={{ borderTop: '1px solid #E5E1EE' }}>
+            <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: '#F5F2FF' }}>
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] font-semibold" style={{ color: '#2D2B3D' }}>
+                  You&apos;re previewing <strong>#{channel.name}</strong>
+                </p>
+                <p className="text-[13px]" style={{ color: '#8E8EA0' }}>
+                  Join this channel to start sending messages
+                </p>
+              </div>
+              <button
+                onClick={handleJoinPreview}
+                disabled={joiningChannel}
+                className="px-6 py-2.5 rounded-xl text-[14px] font-semibold text-white transition-all hover:opacity-90 flex items-center gap-2 shrink-0"
+                style={{ background: '#7C5CFC' }}
+              >
+                {joiningChannel ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogIn className="h-4 w-4" />
+                )}
+                Join Channel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <MessageInput
+            channelId={channel.id}
+            channelName={displayChannelName}
+            onSend={handleSendMessage}
+            placeholder={isDirectMessage ? `Message ${displayChannelName}` : undefined}
+          />
+        )}
+      </div>
+
+      {/* Thread panel */}
+      {!isPreview && threadParentMessage && <ThreadPanel />}
+
+      {/* User profile panel */}
+      {!isPreview && profileUserId && <UserProfilePanel />}
+
+      {/* Channel settings dialog */}
+      {!isPreview && !isDirectMessage && (
+        <ChannelSettingsDialog
+          open={channelSettingsOpen}
+          onOpenChange={setChannelSettingsOpen}
+          channel={channel}
+        />
+      )}
+
+      {/* Call setup dialog (shown when LiveKit is not configured) */}
+      <CallSetupDialog
+        open={callSetupOpen}
+        onOpenChange={setCallSetupOpen}
+      />
+    </div>
+  )
+}
