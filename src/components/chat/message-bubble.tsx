@@ -302,3 +302,54 @@ export function MessageBubble({ message, showHeader, isOwn, isThread }: MessageB
         {/* AVATAR / TIMESTAMP */}
         {showHeader ? (
           <button
+            onClick={() => message.sender_id && openProfile(message.sender_id)}
+            className="h-9 w-9 rounded-xl shrink-0 mt-0.5 hover:opacity-80 transition-opacity cursor-pointer overflow-hidden"
+          >
+            {sender?.avatar_url ? (
+              <img src={sender.avatar_url} alt={displayName} className="h-9 w-9 rounded-xl object-cover" />
+            ) : (
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center text-sm font-bold text-white" style={{ background: '#7C5CFC' }}>
+                {initial}
+              </div>
+            )}
+          </button>
+        ) : (
+          <div className="w-9 shrink-0 flex items-center justify-center">
+            <span className={`text-[10px] text-[#8E8EA0] transition-opacity ${showToolbar ? 'opacity-100' : 'opacity-0'}`}>
+              {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        )}
+
+        {/* CONTENT */}
+        <div className="min-w-0 flex-1">
+          {showHeader && (
+            <div className="flex items-baseline gap-2">
+              <button
+                onClick={() => message.sender_id && openProfile(message.sender_id)}
+                className="font-semibold text-[15px] hover:underline cursor-pointer"
+                style={{ color: '#2D2B3D' }}
+              >
+                {displayName}
+              </button>
+              <span className="text-xs" style={{ color: '#8E8EA0' }}>{time}</span>
+              {message.is_edited && <span className="text-xs italic" style={{ color: '#8E8EA0' }}>(edited)</span>}
+            </div>
+          )}
+          {editing ? (
+            <div className="mt-1">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full text-[15px] bg-white rounded-xl p-3 border border-[#E5E1EE] focus:outline-none focus:ring-2 focus:ring-[#7C5CFC] focus:border-transparent"
+                rows={2}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleEdit() }
+                  if (e.key === 'Escape') setEditing(false)
+                }}
+              />
+              <div className="flex gap-2 mt-1">
+                <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+                <Button size="sm" onClick={handleEdit} style={{ background: '#7C5CFC', color: '#fff' }}>Save</Button>
+              </div>
