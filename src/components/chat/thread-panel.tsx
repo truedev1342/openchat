@@ -22,3 +22,28 @@ export function ThreadPanel() {
   const scrollToBottom = useCallback(() => {
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
   }, [])
+
+  useEffect(() => {
+    if (!threadParentMessage) return
+
+    const client = getSupabaseClient()
+    if (!client) return
+
+    async function loadReplies() {
+      setLoading(true)
+      const { data } = await client!
+        .from('messages')
+        .select('*, sender:profiles(*)')
+        .eq('parent_id', threadParentMessage!.id)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: true })
+
+      if (data) {
+        setReplies(data as Message[])
+        scrollToBottom()
+      }
+      setLoading(false)
+    }
+
+    loadReplies()
+
