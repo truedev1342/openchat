@@ -405,3 +405,85 @@ export function MessageInput({ channelId, channelName, onSend, placeholder }: Me
         const headers: Record<string, string> = {}
         if (session?.access_token) {
           headers.Authorization = `Bearer ${session.access_token}`
+        }
+
+        const res = await fetch('/api/upload', { method: 'POST', body: formData, headers })
+        const data = await res.json()
+
+        if (!res.ok || !data.publicUrl) {
+          throw new Error(data.error || 'Upload failed')
+        }
+
+        newAttachments.push({ name: file.name, url: data.publicUrl })
+      } catch (err) {
+        console.error('Failed to upload file:', err)
+        alert(`File upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      }
+    }
+
+    setAttachments((prev) => [...prev, ...newAttachments])
+    setUploading(false)
+  }
+
+  // Drag & drop
+  const dragCounterRef = useRef(0)
+
+  function handleDragEnter(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current++
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragging(true)
+    }
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current--
+    if (dragCounterRef.current === 0) {
+      setIsDragging(false)
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current = 0
+    setIsDragging(false)
+    if (e.dataTransfer.files.length > 0) {
+      uploadFiles(e.dataTransfer.files)
+    }
+  }
+
+  const isEmpty = !editor?.getText().trim() && attachments.length === 0
+
+  return (
+    <div className="px-5 pb-4 pt-2">
+      <div
+        className={`rounded-2xl transition-all ${
+          isDragging ? 'border-2 border-[#7C5CFC] bg-[#EDE5FF]' : 'border border-[#E5E1EE] shadow-sm'
+        }`}
+        style={{ background: isDragging ? undefined : '#fff' }}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {/* Drag overlay */}
+        {isDragging && (
+          <div className="px-4 py-6 text-center text-sm font-medium" style={{ color: '#7C5CFC' }}>
+            Drop files here to upload
+          </div>
+        )}
+
+        {/* Editor area */}
+        {!isDragging && (
+          <>
+            <div className="px-4 pt-3 pb-1">
+              <EditorContent editor={editor} />
