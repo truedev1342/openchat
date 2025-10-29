@@ -353,3 +353,54 @@ export function MessageBubble({ message, showHeader, isOwn, isThread }: MessageB
                 <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
                 <Button size="sm" onClick={handleEdit} style={{ background: '#7C5CFC', color: '#fff' }}>Save</Button>
               </div>
+            </div>
+          ) : (
+            <div
+              className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words message-content"
+              style={{ color: '#2D2B3D' }}
+              dangerouslySetInnerHTML={{ __html: renderMessageContent(message.content, mentionNames) }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* REACTIONS */}
+      {Object.keys(grouped).length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1 ml-11">
+          {Object.values(grouped).map((r) => (
+            <button
+              key={r.emoji}
+              onClick={() => handleReaction(r.emoji)}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition-all ${
+                r.myReaction
+                  ? 'bg-[#EDE5FF] border-[#7C5CFC]/30 text-[#7C5CFC]'
+                  : 'bg-[#F5F2FF] border-[#E5E1EE] hover:border-[#DDD6F3]'
+              }`}
+            >
+              <span>{r.emoji}</span>
+              <span>{r.count}</span>
+            </button>
+          ))}
+          <button
+            onClick={() => setShowEmojiPicker(true)}
+            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs border border-dashed border-[#DDD6F3] hover:border-[#7C5CFC] text-[#8E8EA0]"
+          >
+            <Smile className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+
+      {/* THREAD INDICATOR */}
+      {!isThread && message.thread_reply_count > 0 && (
+        <button
+          onClick={() => openThread(message)}
+          className="flex items-center gap-1.5 ml-11 mt-1 text-xs hover:underline font-semibold"
+          style={{ color: '#7C5CFC' }}
+        >
+          <MessageSquare className="h-3 w-3" />
+          {message.thread_reply_count} {message.thread_reply_count === 1 ? 'reply' : 'replies'}
+        </button>
+      )}
+    </div>
+  )
+}
