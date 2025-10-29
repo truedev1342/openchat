@@ -47,3 +47,28 @@ export function ThreadPanel() {
 
     loadReplies()
 
+    const sub = client
+      .channel(`thread:${threadParentMessage.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `parent_id=eq.${threadParentMessage.id}`,
+        },
+        async (payload) => {
+          const { data } = await client
+            .from('messages')
+            .select('*, sender:profiles(*)')
+            .eq('id', payload.new.id)
+            .single()
+
+          if (data && !repliesRef.current.find((m) => m.id === data.id)) {
+            setReplies((prev) => [...prev, data as Message])
+            scrollToBottom()
+          }
+        }
+      )
+      .subscribe()
+
