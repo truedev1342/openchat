@@ -487,3 +487,84 @@ export function MessageInput({ channelId, channelName, onSend, placeholder }: Me
           <>
             <div className="px-4 pt-3 pb-1">
               <EditorContent editor={editor} />
+            </div>
+
+            {/* Attachments preview */}
+            {attachments.length > 0 && (
+              <div className="px-4 pb-1 flex flex-wrap gap-2">
+                {attachments.map((a, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs"
+                    style={{ background: '#F5F2FF', color: '#4A4860' }}
+                  >
+                    <Paperclip className="h-3 w-3" />
+                    <span className="truncate max-w-[150px]">{a.name}</span>
+                    <button
+                      onClick={() =>
+                        setAttachments((prev) => prev.filter((_, j) => j !== i))
+                      }
+                      className="hover:text-[#E55B5B] ml-1 transition-colors"
+                      style={{ color: '#8E8EA0' }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Toolbar */}
+            <div className="px-2 pb-2 flex items-center justify-between">
+              <div className="flex items-center gap-0.5">
+                <button
+                  className={`h-7 w-7 rounded-lg flex items-center justify-center transition-all ${
+                    editor?.isActive('bold')
+                      ? 'text-[#7C5CFC] bg-[#EDE5FF]'
+                      : 'text-[#8E8EA0] hover:text-[#2D2B3D] hover:bg-[#F5F2FF]'
+                  }`}
+                  onClick={() => editor?.chain().focus().toggleBold().run()}
+                  title="Bold (Ctrl+B)"
+                >
+                  <Bold className="h-4 w-4" />
+                </button>
+                <button
+                  className={`h-7 w-7 rounded-lg flex items-center justify-center transition-all ${
+                    editor?.isActive('italic')
+                      ? 'text-[#7C5CFC] bg-[#EDE5FF]'
+                      : 'text-[#8E8EA0] hover:text-[#2D2B3D] hover:bg-[#F5F2FF]'
+                  }`}
+                  onClick={() => editor?.chain().focus().toggleItalic().run()}
+                  title="Italic (Ctrl+I)"
+                >
+                  <Italic className="h-4 w-4" />
+                </button>
+                <button
+                  className={`h-7 w-7 rounded-lg flex items-center justify-center transition-all ${
+                    editor?.isActive('code')
+                      ? 'text-[#7C5CFC] bg-[#EDE5FF]'
+                      : 'text-[#8E8EA0] hover:text-[#2D2B3D] hover:bg-[#F5F2FF]'
+                  }`}
+                  onClick={() => editor?.chain().focus().toggleCode().run()}
+                  title="Inline code"
+                >
+                  <Code className="h-4 w-4" />
+                </button>
+                <button
+                  className={`h-7 w-7 rounded-lg flex items-center justify-center transition-all ${
+                    editor?.isActive('codeBlock')
+                      ? 'text-[#7C5CFC] bg-[#EDE5FF]'
+                      : 'text-[#8E8EA0] hover:text-[#2D2B3D] hover:bg-[#F5F2FF]'
+                  }`}
+                  onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+                  title="Code block"
+                >
+                  <CodeSquare className="h-4 w-4" />
+                </button>
+                <div className="w-px h-4 mx-1" style={{ background: '#E5E1EE' }} />
+                <button
+                  className="h-7 w-7 rounded-lg flex items-center justify-center transition-all text-[#8E8EA0] hover:text-[#2D2B3D] hover:bg-[#F5F2FF]"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach file"
+                  disabled={uploading}
+                >
