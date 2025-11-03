@@ -568,3 +568,85 @@ export function MessageInput({ channelId, channelName, onSend, placeholder }: Me
                   title="Attach file"
                   disabled={uploading}
                 >
+                  <Paperclip className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="flex items-center">
+                <button
+                  className={`h-8 w-8 rounded-l-xl flex items-center justify-center transition-all ${
+                    isEmpty || sending
+                      ? 'text-[#DDD6F3] cursor-not-allowed'
+                      : 'bg-[#7C5CFC] text-white hover:bg-[#6B4EE6] shadow-sm'
+                  }`}
+                  disabled={isEmpty || sending}
+                  onClick={handleSend}
+                >
+                  <SendHorizonal className="h-4 w-4" />
+                </button>
+                <div className="relative">
+                  <button
+                    className={`h-8 w-5 rounded-r-xl flex items-center justify-center transition-all border-l ${
+                      isEmpty || sending
+                        ? 'text-[#DDD6F3] cursor-not-allowed border-[#E5E1EE]'
+                        : 'bg-[#7C5CFC] text-white hover:bg-[#6B4EE6] shadow-sm border-[#6B4EE6]'
+                    }`}
+                    disabled={isEmpty || sending}
+                    onClick={() => setShowSendMenu(!showSendMenu)}
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </button>
+                  {showSendMenu && (
+                    <div className="absolute bottom-full right-0 mb-1 py-1 min-w-[180px] rounded-xl border bg-white shadow-lg" style={{ borderColor: '#E5E1EE' }}>
+                      <button
+                        onClick={() => {
+                          setShowSendMenu(false)
+                          setScheduleOpen(true)
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[#F5F2FF] text-left text-[#2D2B3D]"
+                      >
+                        <Clock className="h-3.5 w-3.5" style={{ color: '#7C5CFC' }} />
+                        Schedule message
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {showSlashPicker && (
+        <SlashCommandPicker
+          query={slashQuery}
+          onSelect={handleSlashCommand}
+          onClose={() => setShowSlashPicker(false)}
+          position={slashPosition}
+        />
+      )}
+
+      <ScheduleMessageDialog
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        content={editor ? htmlToContent(editor.getHTML()) : ''}
+        channelId={channelId || ''}
+        onScheduled={() => {
+          editor?.commands.clearContent()
+          setAttachments([])
+        }}
+      />
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files) uploadFiles(e.target.files)
+          e.target.value = ''
+        }}
+      />
+    </div>
+  )
+}
