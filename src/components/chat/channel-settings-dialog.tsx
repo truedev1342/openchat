@@ -161,3 +161,85 @@ export function ChannelSettingsDialog({ open, onOpenChange, channel }: ChannelSe
 
       // Archive channel (soft delete - set is_archived)
       await client
+        .from('channels')
+        .update({ is_archived: true })
+        .eq('id', channel.id)
+
+      removeChannel(channel.id)
+
+      // Switch to first available channel
+      const remaining = channels.filter((c) => c.id !== channel.id && !c.name.startsWith('dm-'))
+      if (remaining.length > 0) {
+        setCurrentChannelId(remaining[0].id)
+      }
+
+      onOpenChange(false)
+    } catch (err) {
+      console.error('Failed to delete channel:', err)
+    }
+    setDeleting(false)
+  }
+
+  async function handleJoinChannel() {
+    const client = getSupabaseClient()
+    if (!client || !user) return
+
+    setJoining(true)
+    try {
+      await client.from('channel_members').insert({
+        channel_id: channel.id,
+        profile_id: user.id,
+        role: 'member',
+      })
+      setIsMember(true)
+      await loadMembers()
+    } catch (err) {
+      console.error('Failed to join:', err)
+    }
+    setJoining(false)
+  }
+
+  async function handleLeaveChannel() {
+    // If creator, show ownership transfer dialog
+    if (isCreator) {
+      const otherMembers = members.filter((m) => m.profile.id !== user?.id)
+      if (otherMembers.length > 0) {
+        setShowTransfer(true)
+        return
+      }
+      // If no other members, just delete the channel
+      await handleDeleteChannel()
+      return
+    }
+
+    const client = getSupabaseClient()
+    if (!client || !user) return
+
+    setLeaving(true)
+    try {
+      await client
+        .from('channel_members')
+        .delete()
+        .eq('channel_id', channel.id)
+        .eq('profile_id', user.id)
+
+      removeChannel(channel.id)
+
+      const remaining = channels.filter((c) => c.id !== channel.id && !c.name.startsWith('dm-'))
+      if (remaining.length > 0) {
+        setCurrentChannelId(remaining[0].id)
+      }
+
+      onOpenChange(false)
+    } catch (err) {
+      console.error('Failed to leave:', err)
+    }
+    setLeaving(false)
+  }
+
+  async function handleTransferAndLeave() {
+    if (!transferTarget) return
+    const client = getSupabaseClient()
+    if (!client || !user) return
+
+    setTransferring(true)
