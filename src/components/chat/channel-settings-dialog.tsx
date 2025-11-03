@@ -243,3 +243,85 @@ export function ChannelSettingsDialog({ open, onOpenChange, channel }: ChannelSe
     if (!client || !user) return
 
     setTransferring(true)
+    try {
+      // Transfer ownership: update created_by and set new owner as admin
+      await client
+        .from('channels')
+        .update({ created_by: transferTarget })
+        .eq('id', channel.id)
+
+      await client
+        .from('channel_members')
+        .update({ role: 'admin' })
+        .eq('channel_id', channel.id)
+        .eq('profile_id', transferTarget)
+
+      // Now leave
+      await client
+        .from('channel_members')
+        .delete()
+        .eq('channel_id', channel.id)
+        .eq('profile_id', user.id)
+
+      removeChannel(channel.id)
+
+      const remaining = channels.filter((c) => c.id !== channel.id && !c.name.startsWith('dm-'))
+      if (remaining.length > 0) {
+        setCurrentChannelId(remaining[0].id)
+      }
+
+      onOpenChange(false)
+    } catch (err) {
+      console.error('Failed to transfer ownership:', err)
+    }
+    setTransferring(false)
+  }
+
+  async function handleAddMember(profile: Profile) {
+    const client = getSupabaseClient()
+    if (!client) return
+
+    setAdding(true)
+    try {
+      await client.from('channel_members').insert({
+        channel_id: channel.id,
+        profile_id: profile.id,
+        role: 'member',
+      })
+      setMemberSearch('')
+      await loadMembers()
+    } catch (err) {
+      console.error('Failed to add member:', err)
+    }
+    setAdding(false)
+  }
+
+  async function handleRemoveMember(profileId: string) {
+    const client = getSupabaseClient()
+    if (!client) return
+
+    try {
+      await client
+        .from('channel_members')
+        .delete()
+        .eq('channel_id', channel.id)
+        .eq('profile_id', profileId)
+
+      await loadMembers()
+    } catch (err) {
+      console.error('Failed to remove member:', err)
+    }
+  }
+
+  const currentUserRole = members.find((m) => m.profile.id === user?.id)?.role
+  const isAdmin = currentUserRole === 'admin'
+  const isCreator = channel.created_by === user?.id
+  const isMuted = mutedChannelIds.includes(channel.id)
+  const otherMembers = members.filter((m) => m.profile.id !== user?.id)
+
+  // Ownership transfer view
+  if (showTransfer) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
