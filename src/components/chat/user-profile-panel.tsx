@@ -23,3 +23,29 @@ export function UserProfilePanel() {
     const client = getSupabaseClient()
     if (!client) return
 
+    setLoading(true)
+
+    client
+      .from('profiles')
+      .select('*')
+      .eq('id', profileUserId)
+      .single()
+      .then(({ data }) => {
+        if (data) setProfile(data as Profile)
+        setLoading(false)
+      })
+
+    if (workspace) {
+      client
+        .from('workspace_members')
+        .select('role')
+        .eq('workspace_id', workspace.id)
+        .eq('profile_id', profileUserId)
+        .single()
+        .then(({ data }) => {
+          if (data) setRole(data.role)
+        })
+    }
+  }, [profileUserId, workspace])
+
+  useEffect(() => {

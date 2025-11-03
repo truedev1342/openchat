@@ -72,3 +72,28 @@ export function ThreadPanel() {
       )
       .subscribe()
 
+    return () => {
+      sub.unsubscribe()
+    }
+  }, [threadParentMessage, scrollToBottom])
+
+  if (!threadParentMessage) return null
+
+  async function handleSendReply(content: string) {
+    const client = getSupabaseClient()
+    if (!client || !user || !threadParentMessage) return
+
+    await client.from('messages').insert({
+      channel_id: threadParentMessage.channel_id,
+      sender_id: user.id,
+      content,
+      parent_id: threadParentMessage.id,
+    })
+  }
+
+  return (
+    <div className="w-96 flex flex-col h-full" style={{ background: '#ffffff', borderLeft: '1px solid #E5E1EE' }}>
+      {/* Header */}
+      <div className="px-5 py-3 flex items-center justify-between shrink-0" style={{ borderBottom: '1px solid #E5E1EE' }}>
+        <h3 className="font-bold text-[17px]" style={{ color: '#2D2B3D' }}>Thread</h3>
+        <button className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-[#F5F2FF] transition-colors" onClick={closeThread}>
