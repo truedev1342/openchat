@@ -97,3 +97,28 @@ export function ThreadPanel() {
       <div className="px-5 py-3 flex items-center justify-between shrink-0" style={{ borderBottom: '1px solid #E5E1EE' }}>
         <h3 className="font-bold text-[17px]" style={{ color: '#2D2B3D' }}>Thread</h3>
         <button className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-[#F5F2FF] transition-colors" onClick={closeThread}>
+          <X className="h-4 w-4" style={{ color: '#8E8EA0' }} />
+        </button>
+      </div>
+
+      {/* Parent message */}
+      <div className="px-4 pt-3 pb-2" style={{ borderBottom: '1px solid #E5E1EE' }}>
+        <MessageBubble message={threadParentMessage} showHeader isOwn={threadParentMessage.sender_id === user?.id} isThread />
+      </div>
+
+      {/* Reply count */}
+      <div className="px-5 py-2 text-xs font-medium" style={{ color: '#8E8EA0', borderBottom: '1px solid #E5E1EE' }}>
+        {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
+      </div>
+
+      {/* Replies */}
+      <div className="flex-1 overflow-y-auto px-4">
+        <div className="py-2 space-y-1">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin" style={{ color: '#7C5CFC' }} />
+            </div>
+          ) : (
+            replies.map((reply, i) => {
+              const prev = i > 0 ? replies[i - 1] : null
+              const showHeader =
