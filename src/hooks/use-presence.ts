@@ -24,3 +24,30 @@ export function usePresence() {
     async function setOnline() {
       await client!
         .from('profiles')
+        .update({ is_online: true, last_seen_at: new Date().toISOString() })
+        .eq('id', user!.id)
+    }
+
+    // Set offline + update last_seen
+    async function setOffline() {
+      // Use sendBeacon-compatible approach for tab close
+      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${user!.id}`
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      if (!anonKey) return
+
+      // Try fetch first (works for normal navigation/cleanup)
+      try {
+        await client!
+          .from('profiles')
+          .update({ is_online: false, last_seen_at: new Date().toISOString() })
+          .eq('id', user!.id)
+      } catch {
+        // Fallback: sendBeacon for tab close (best-effort)
+        try {
+          const body = JSON.stringify({ is_online: false, last_seen_at: new Date().toISOString() })
+          navigator.sendBeacon?.(url, new Blob([body], { type: 'application/json' }))
+        } catch {
+          // Best effort
+        }
+      }
+    }
