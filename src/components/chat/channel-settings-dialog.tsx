@@ -325,3 +325,85 @@ export function ChannelSettingsDialog({ open, onOpenChange, channel }: ChannelSe
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" style={{ color: '#F59E0B' }} />
+              Transfer ownership
+            </DialogTitle>
+          </DialogHeader>
+
+          <p className="text-[13px]" style={{ color: '#4A4860' }}>
+            You are the owner of <strong>#{channel.name}</strong>. Before leaving, please select a new owner for this channel.
+          </p>
+
+          <div className="space-y-1 max-h-48 overflow-y-auto">
+            {otherMembers.map((m) => (
+              <button
+                key={m.profile.id}
+                onClick={() => setTransferTarget(m.profile.id)}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
+                  transferTarget === m.profile.id ? 'bg-[#EDE5FF]' : 'hover:bg-[#F5F2FF]'
+                }`}
+                style={{
+                  border: transferTarget === m.profile.id ? '1px solid #7C5CFC' : '1px solid transparent',
+                }}
+              >
+                <div className="relative shrink-0">
+                  {m.profile.avatar_url ? (
+                    <img src={m.profile.avatar_url} alt="" className="h-7 w-7 rounded-lg object-cover" />
+                  ) : (
+                    <div className="h-7 w-7 rounded-lg flex items-center justify-center text-[11px] font-bold text-white" style={{ background: '#7C5CFC' }}>
+                      {m.profile.display_name[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <Circle
+                    className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 ${
+                      m.profile.is_online ? 'fill-green-500 text-green-500' : 'fill-gray-300 text-gray-300'
+                    }`}
+                    strokeWidth={3}
+                    stroke="white"
+                  />
+                </div>
+                <span className="text-[13px] font-medium" style={{ color: '#2D2B3D' }}>
+                  {m.profile.display_name}
+                </span>
+                {m.role === 'admin' && (
+                  <Crown className="h-3 w-3 ml-auto" style={{ color: '#F59E0B' }} />
+                )}
+                {transferTarget === m.profile.id && (
+                  <Check className="h-4 w-4 ml-auto" style={{ color: '#7C5CFC' }} />
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setShowTransfer(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleTransferAndLeave}
+              disabled={!transferTarget || transferring}
+              style={{ background: '#7C5CFC', color: '#fff' }}
+            >
+              {transferring ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+              Transfer & Leave
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  // Delete confirmation view
+  if (showDeleteConfirm) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-[#E55B5B]">
+              <Trash2 className="h-5 w-5" />
+              Delete channel
+            </DialogTitle>
+          </DialogHeader>
+
+          <p className="text-[13px]" style={{ color: '#4A4860' }}>
