@@ -122,3 +122,28 @@ export function ThreadPanel() {
             replies.map((reply, i) => {
               const prev = i > 0 ? replies[i - 1] : null
               const showHeader =
+                !prev ||
+                prev.sender_id !== reply.sender_id ||
+                new Date(reply.created_at).getTime() - new Date(prev.created_at).getTime() >
+                  5 * 60 * 1000
+
+              return (
+                <MessageBubble
+                  key={reply.id}
+                  message={reply}
+                  showHeader={showHeader}
+                  isOwn={reply.sender_id === user?.id}
+                  isThread
+                />
+              )
+            })
+          )}
+          <div ref={bottomRef} />
+        </div>
+      </div>
+
+      {/* Reply input */}
+      <MessageInput channelId={threadParentMessage?.channel_id} channelName="thread" onSend={handleSendReply} placeholder="Reply..." />
+    </div>
+  )
+}
