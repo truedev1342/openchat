@@ -100,3 +100,28 @@ export function UserProfilePanel() {
                     stroke="#ffffff"
                   />
                 </div>
+              </div>
+
+              <h2 className="text-xl font-bold" style={{ color: '#2D2B3D' }}>{displayName}</h2>
+
+              {(profile.status_emoji || profile.status_text) && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-sm" style={{ color: '#8E8EA0' }}>
+                  {profile.status_emoji && <span>{profile.status_emoji}</span>}
+                  {profile.status_text && <span>{profile.status_text}</span>}
+                </div>
+              )}
+
+              {role && (
+                <span
+                  className="mt-2.5 text-xs px-3 py-1 rounded-full font-medium"
+                  style={{
+                    background: role === 'owner' ? '#FEF3C7' : role === 'admin' ? '#EDE5FF' : '#F5F2FF',
+                    color: role === 'owner' ? '#92400E' : role === 'admin' ? '#7C5CFC' : '#8E8EA0',
+                    border: `1px solid ${role === 'owner' ? '#FDE68A' : role === 'admin' ? '#DDD6F3' : '#E5E1EE'}`,
+                  }}
+                >
+                  {role.charAt(0).toUpperCase() + role.slice(1)}
+                </span>
+              )}
+
+              {isOwnProfile && (
