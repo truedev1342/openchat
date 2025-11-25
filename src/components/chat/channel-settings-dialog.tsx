@@ -407,3 +407,85 @@ export function ChannelSettingsDialog({ open, onOpenChange, channel }: ChannelSe
           </DialogHeader>
 
           <p className="text-[13px]" style={{ color: '#4A4860' }}>
+            Are you sure you want to delete <strong>#{channel.name}</strong>? This will archive the channel and remove all members. This action cannot be undone.
+          </p>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteChannel}
+              disabled={deleting}
+              className="bg-[#E55B5B] hover:bg-[#D04444] text-white"
+            >
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Trash2 className="h-4 w-4 mr-1" />}
+              Delete Channel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {channel.is_private ? (
+              <Lock className="h-5 w-5" style={{ color: '#7C5CFC' }} />
+            ) : (
+              <Hash className="h-5 w-5" style={{ color: '#7C5CFC' }} />
+            )}
+            {isRenaming ? (
+              <div className="flex items-center gap-2 flex-1">
+                <Input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="h-8 text-[16px] font-bold"
+                  placeholder="Channel name"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleRename()
+                    if (e.key === 'Escape') setIsRenaming(false)
+                  }}
+                />
+                <Button size="sm" onClick={handleRename} disabled={renaming} className="h-8 px-2" style={{ background: '#7C5CFC', color: '#fff' }}>
+                  {renaming ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setIsRenaming(false)} className="h-8 px-2">
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <span>{channel.name}</span>
+                {isCreator && channel.name !== 'general' && (
+                  <button
+                    onClick={() => { setNewName(channel.name); setIsRenaming(true) }}
+                    className="h-6 w-6 rounded flex items-center justify-center hover:bg-[#F5F2FF] transition-colors"
+                    title="Rename channel"
+                  >
+                    <Pencil className="h-3 w-3" style={{ color: '#8E8EA0' }} />
+                  </button>
+                )}
+              </>
+            )}
+          </DialogTitle>
+        </DialogHeader>
+
+        {renameError && (
+          <div className="p-2 rounded-lg text-[12px]" style={{ background: '#FEE2E2', color: '#E55B5B' }}>
+            {renameError}
+          </div>
+        )}
+
+        {channel.description && (
+          <p className="text-[13px]" style={{ color: '#8E8EA0' }}>{channel.description}</p>
+        )}
+
+        <div className="space-y-5 pt-2">
+          {/* Mute / Unmute */}
+          {isMember && (
+            <div className="flex gap-2">

@@ -51,3 +51,29 @@ export function usePresence() {
         }
       }
     }
+
+    // Heartbeat: update last_seen periodically while tab is active
+    async function heartbeat() {
+      if (document.visibilityState === 'visible') {
+        await client!
+          .from('profiles')
+          .update({ is_online: true, last_seen_at: new Date().toISOString() })
+          .eq('id', user!.id)
+      }
+    }
+
+    // Handle visibility change (tab focus/blur)
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        setOnline()
+      } else {
+        // Tab hidden — update last_seen but keep online (they might come back)
+        client!
+          .from('profiles')
+          .update({ last_seen_at: new Date().toISOString() })
+          .eq('id', user!.id)
+      }
+    }
+
+    // Handle tab close / navigate away
+    function handleBeforeUnload() {
