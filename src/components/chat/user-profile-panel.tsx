@@ -74,3 +74,29 @@ export function UserProfilePanel() {
         {loading ? (
           <div className="flex-1 flex items-center justify-center text-sm" style={{ color: '#8E8EA0' }}>
             Loading profile...
+          </div>
+        ) : profile ? (
+          <div className="flex-1 overflow-y-auto">
+            {/* Avatar + name */}
+            <div className="flex flex-col items-center pt-8 pb-4 px-4">
+              <div className="relative mb-3">
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={displayName}
+                    className="h-[120px] w-[120px] rounded-2xl object-cover shadow-sm"
+                  />
+                ) : (
+                  <div className="h-[120px] w-[120px] rounded-2xl flex items-center justify-center text-4xl font-bold text-white shadow-sm" style={{ background: '#7C5CFC' }}>
+                    {initial}
+                  </div>
+                )}
+                <div className="absolute bottom-1.5 right-1.5">
+                  <Circle
+                    className={`h-4 w-4 ${
+                      isOnline ? 'fill-green-500 text-green-500' : 'fill-gray-300 text-gray-300'
+                    }`}
+                    strokeWidth={3}
+                    stroke="#ffffff"
+                  />
+                </div>
