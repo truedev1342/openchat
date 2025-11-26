@@ -23,3 +23,28 @@ export function useNotifications() {
   }, [])
 
   // Subscribe to mentions and DMs — push to activity panel + browser notifications
+  useEffect(() => {
+    if (!user || !workspace) return
+    const client = getSupabaseClient()
+    if (!client) return
+
+    const sub = client
+      .channel('notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        async (payload) => {
+          const msg = payload.new as {
+            id: string
+            channel_id: string
+            sender_id: string
+            content: string
+            parent_id: string | null
+            created_at: string
+          }
+
+          // Don't notify for own messages — but mark activities for that channel as read
