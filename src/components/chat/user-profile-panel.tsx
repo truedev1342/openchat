@@ -125,3 +125,29 @@ export function UserProfilePanel() {
               )}
 
               {isOwnProfile && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 rounded-xl"
+                  onClick={() => setEditOpen(true)}
+                  style={{ borderColor: '#E5E1EE', color: '#4A4860' }}
+                >
+                  <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                  Edit Profile
+                </Button>
+              )}
+            </div>
+
+            {/* Details section */}
+            <div className="px-5 space-y-4 pb-6">
+              {profile.email && (
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#8E8EA0' }}>
+                    Email Address
+                  </label>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="h-4 w-4 shrink-0" style={{ color: '#8E8EA0' }} />
+                    <a
+                      href={`mailto:${profile.email}`}
+                      className="hover:underline truncate"
+                      style={{ color: '#7C5CFC' }}
