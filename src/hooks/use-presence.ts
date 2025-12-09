@@ -77,3 +77,30 @@ export function usePresence() {
 
     // Handle tab close / navigate away
     function handleBeforeUnload() {
+      setOffline()
+    }
+
+    // Initial: set online
+    setOnline()
+
+    // Start heartbeat
+    intervalRef.current = setInterval(heartbeat, HEARTBEAT_INTERVAL)
+
+    // Listen for visibility + unload events
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      // Cleanup: set offline
+      setOffline()
+
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [user])
+}
