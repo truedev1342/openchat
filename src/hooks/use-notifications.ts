@@ -48,3 +48,28 @@ export function useNotifications() {
           }
 
           // Don't notify for own messages — but mark activities for that channel as read
+          // (the user is clearly active in this channel)
+          if (msg.sender_id === user.id) {
+            const s = useAppStore.getState()
+            let readCount = 0
+            const updated = s.activities.map((a) => {
+              if (a.channelId === msg.channel_id && !a.read) {
+                readCount++
+                return { ...a, read: true }
+              }
+              return a
+            })
+            if (readCount > 0) {
+              useAppStore.setState({
+                activities: updated,
+                unreadActivityCount: Math.max(0, s.unreadActivityCount - readCount),
+              })
+            }
+            return
+          }
+
+          const state = useAppStore.getState()
+
+          // Skip activity + browser notifications for muted channels
+          if (state.mutedChannelIds.includes(msg.channel_id)) return
+
