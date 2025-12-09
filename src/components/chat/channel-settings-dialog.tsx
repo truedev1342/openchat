@@ -489,3 +489,85 @@ export function ChannelSettingsDialog({ open, onOpenChange, channel }: ChannelSe
           {/* Mute / Unmute */}
           {isMember && (
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => isMuted ? unmuteChannel(channel.id) : muteChannel(channel.id)}
+                className="flex-1"
+              >
+                {isMuted ? (
+                  <>
+                    <Bell className="h-4 w-4 mr-1" />
+                    Unmute Channel
+                  </>
+                ) : (
+                  <>
+                    <BellOff className="h-4 w-4 mr-1" />
+                    Mute Channel
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* Join / Leave */}
+          <div className="flex gap-2">
+            {!isMember && !channel.is_private && (
+              <Button
+                onClick={handleJoinChannel}
+                disabled={joining}
+                className="flex-1"
+                style={{ background: '#7C5CFC', color: '#fff' }}
+              >
+                {joining ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <UserPlus className="h-4 w-4 mr-1" />}
+                Join Channel
+              </Button>
+            )}
+            {isMember && channel.name !== 'general' && (
+              <Button
+                variant="outline"
+                onClick={handleLeaveChannel}
+                disabled={leaving}
+                className="flex-1 text-[#E55B5B] hover:text-[#E55B5B] hover:bg-red-50"
+              >
+                {leaving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <LogOut className="h-4 w-4 mr-1" />}
+                Leave Channel
+              </Button>
+            )}
+          </div>
+
+          {/* Members */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-[13px] font-semibold uppercase tracking-wider" style={{ color: '#8E8EA0' }}>
+                Members ({members.length})
+              </Label>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-4 w-4 animate-spin" style={{ color: '#7C5CFC' }} />
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {members.map((m) => (
+                  <div key={m.profile.id} className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg group hover:bg-[#F5F2FF]">
+                    <div className="relative shrink-0">
+                      {m.profile.avatar_url ? (
+                        <img src={m.profile.avatar_url} alt="" className="h-7 w-7 rounded-lg object-cover" />
+                      ) : (
+                        <div className="h-7 w-7 rounded-lg flex items-center justify-center text-[11px] font-bold text-white" style={{ background: '#7C5CFC' }}>
+                          {m.profile.display_name[0]?.toUpperCase()}
+                        </div>
+                      )}
+                      <Circle
+                        className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 ${
+                          m.profile.is_online ? 'fill-green-500 text-green-500' : 'fill-gray-300 text-gray-300'
+                        }`}
+                        strokeWidth={3}
+                        stroke="white"
+                      />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[13px] font-medium truncate" style={{ color: '#2D2B3D' }}>
