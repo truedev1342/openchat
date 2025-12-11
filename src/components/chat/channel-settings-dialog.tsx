@@ -571,3 +571,85 @@ export function ChannelSettingsDialog({ open, onOpenChange, channel }: ChannelSe
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[13px] font-medium truncate" style={{ color: '#2D2B3D' }}>
+                          {m.profile.display_name}
+                        </span>
+                        {m.profile.id === user?.id && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: '#F5F2FF', color: '#8E8EA0' }}>you</span>
+                        )}
+                        {m.role === 'admin' && (
+                          <Crown className="h-3 w-3" style={{ color: '#F59E0B' }} />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Remove button (only for admins/creator, can't remove yourself) */}
+                    {(isAdmin || isCreator) && m.profile.id !== user?.id && (
+                      <button
+                        onClick={() => handleRemoveMember(m.profile.id)}
+                        className="h-6 w-6 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
+                        title="Remove from channel"
+                      >
+                        <X className="h-3 w-3" style={{ color: '#E55B5B' }} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Add members (if admin/creator) */}
+          {isMember && (isAdmin || isCreator) && (
+            <div className="space-y-2 pt-2" style={{ borderTop: '1px solid #E5E1EE' }}>
+              <Label className="text-[13px]">Add members</Label>
+              <Input
+                placeholder="Search workspace members..."
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+              />
+
+              {memberSearch && nonMembers.length > 0 && (
+                <div className="max-h-32 overflow-y-auto space-y-0.5 rounded-lg border border-[#E5E1EE] p-1">
+                  {nonMembers.slice(0, 6).map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => handleAddMember(p)}
+                      disabled={adding}
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[#F5F2FF] transition-colors text-left text-[13px]"
+                    >
+                      <div className="relative shrink-0">
+                        {p.avatar_url ? (
+                          <img src={p.avatar_url} alt="" className="h-6 w-6 rounded-md object-cover" />
+                        ) : (
+                          <div className="h-6 w-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white" style={{ background: '#7C5CFC' }}>
+                            {p.display_name[0]?.toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <span style={{ color: '#2D2B3D' }}>{p.display_name}</span>
+                      {p.email && <span className="text-[11px] ml-auto" style={{ color: '#8E8EA0' }}>{p.email}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Delete channel (creator only) */}
+          {isCreator && channel.name !== 'general' && (
+            <div className="pt-2" style={{ borderTop: '1px solid #E5E1EE' }}>
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="w-full text-[#E55B5B] hover:text-[#E55B5B] hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete Channel
+              </Button>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
