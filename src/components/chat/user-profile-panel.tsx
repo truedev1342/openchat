@@ -151,3 +151,28 @@ export function UserProfilePanel() {
                       href={`mailto:${profile.email}`}
                       className="hover:underline truncate"
                       style={{ color: '#7C5CFC' }}
+                    >
+                      {profile.email}
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#8E8EA0' }}>
+                  {isOnline ? 'Status' : 'Last Seen'}
+                </label>
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 shrink-0" style={{ color: '#8E8EA0' }} />
+                  <span style={{ color: '#2D2B3D' }}>
+                    {isOnline
+                      ? 'Active now'
+                      : profile.last_seen_at
+                      ? formatDistanceToNow(new Date(profile.last_seen_at), { addSuffix: true })
+                      : 'Never'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#8E8EA0' }}>
