@@ -60,3 +60,65 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
         if (channelsData) {
           channelsData
             .filter((c) => !c.is_private || myChannelIds.has(c.id))
+            .slice(0, 5)
+            .forEach((c) => all.push({ type: 'channel', channel: c as Channel }))
+        }
+
+        // Search users
+        const { data: members } = await client
+          .from('workspace_members')
+          .select('profile:profiles(*)')
+          .eq('workspace_id', workspace.id)
+
+        if (members) {
+          const profiles = members
+            .map((m: Record<string, unknown>) => m.profile as Profile)
+            .filter(
+              (p) =>
+                p &&
+                (p.display_name.toLowerCase().includes(q.toLowerCase()) ||
+                  p.email?.toLowerCase().includes(q.toLowerCase()))
+            )
+            .slice(0, 5)
+
+          profiles.forEach((u) => all.push({ type: 'user', user: u }))
+        }
+
+        // Search messages
+        if (myChannelIds.size > 0) {
+          const { data: messages } = await client
+            .from('messages')
+            .select('*, sender:profiles(*)')
+            .eq('is_deleted', false)
+            .in('channel_id', [...myChannelIds])
+            .ilike('content', `%${q}%`)
+            .order('created_at', { ascending: false })
+            .limit(10)
+
+          if (messages) {
+            const channelIds = [...new Set(messages.map((m) => m.channel_id))]
+            const { data: channelData } = await client
+              .from('channels')
+              .select('id, name, is_private')
+              .in('id', channelIds)
+
+            const channelMap = new Map(channelData?.map((c) => [c.id, c.name]) || [])
+
+            messages.forEach((m) =>
+              all.push({
+                type: 'message',
+                message: { ...m, channel_name: channelMap.get(m.channel_id) || 'unknown' } as Message & { sender?: Profile; channel_name?: string },
+              })
+            )
+          }
+        }
+      } catch (err) {
+        console.error('Search error:', err)
+      }
+
+      setResults(all)
+      setActiveIndex(-1)
+      setLoading(false)
+    },
+    [workspace, user]
+  )
