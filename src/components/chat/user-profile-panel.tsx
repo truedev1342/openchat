@@ -176,3 +176,29 @@ export function UserProfilePanel() {
 
               <div className="space-y-1">
                 <label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#8E8EA0' }}>
+                  Joined
+                </label>
+                <div className="flex items-center gap-2 text-sm">
+                  <MessageSquare className="h-4 w-4 shrink-0" style={{ color: '#8E8EA0' }} />
+                  <span style={{ color: '#2D2B3D' }}>
+                    {new Date(profile.created_at).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-sm" style={{ color: '#8E8EA0' }}>
+            Profile not found
+          </div>
+        )}
+      </div>
+
+      <ProfileEditDialog open={editOpen} onOpenChange={setEditOpen} />
+    </>
+  )
+}
