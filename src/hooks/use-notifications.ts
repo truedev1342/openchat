@@ -73,3 +73,28 @@ export function useNotifications() {
           // Skip activity + browser notifications for muted channels
           if (state.mutedChannelIds.includes(msg.channel_id)) return
 
+          // Check if it's a mention of the current user
+          const isMention = msg.content.includes(`@${user.id}`)
+          // Check if it's a DM
+          const isDm = state.dmChannels.some((dm) => dm.id === msg.channel_id)
+          // Check if it's a thread reply to one of our messages (would need parent message)
+          const isThreadReply = !!msg.parent_id
+
+          if (!isMention && !isDm && !isThreadReply) return
+
+          // Fetch the full message with sender info for the activity panel
+          const { data: fullMsg } = await client
+            .from('messages')
+            .select('*, sender:profiles(*)')
+            .eq('id', msg.id)
+            .single()
+
+          if (!fullMsg) return
+
+          // Determine channel name for display
+          let channelName = ''
+          const allChannels = [...state.channels, ...state.dmChannels]
+          const ch = allChannels.find((c) => c.id === msg.channel_id)
+          if (ch) {
+            if (ch.name.startsWith('dm-')) {
+              const dmCh = state.dmChannels.find((d) => d.id === ch.id)
