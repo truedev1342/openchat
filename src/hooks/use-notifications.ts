@@ -98,3 +98,28 @@ export function useNotifications() {
           if (ch) {
             if (ch.name.startsWith('dm-')) {
               const dmCh = state.dmChannels.find((d) => d.id === ch.id)
+              channelName = dmCh?.otherUser?.display_name || 'Direct Message'
+            } else {
+              channelName = ch.name
+            }
+          }
+
+          // Determine activity type
+          let activityType: 'mention' | 'dm' | 'thread_reply' = 'dm'
+          if (isMention) activityType = 'mention'
+          else if (isDm) activityType = 'dm'
+          else if (isThreadReply) activityType = 'thread_reply'
+
+          // Add to activity panel
+          useAppStore.getState().addActivity({
+            id: msg.id,
+            type: activityType,
+            message: fullMsg as Message,
+            channelId: msg.channel_id,
+            channelName,
+            timestamp: msg.created_at,
+            read: false,
+          })
+
+          // Don't send browser notification for current channel
+          if (msg.channel_id === state.currentChannelId) return

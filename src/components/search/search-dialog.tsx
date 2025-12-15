@@ -122,3 +122,65 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     },
     [workspace, user]
   )
+
+  // Debounced search
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([])
+      return
+    }
+
+    const timeout = setTimeout(() => search(query), 300)
+    return () => clearTimeout(timeout)
+  }, [query, search])
+
+  // Reset on close
+  useEffect(() => {
+    if (!open) {
+      setQuery('')
+      setResults([])
+      setActiveIndex(-1)
+    }
+  }, [open])
+
+  // Keyboard navigation
+  function handleKeyDown(e: React.KeyboardEvent) {
+    const flatResults = results
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIndex((prev) => (prev < flatResults.length - 1 ? prev + 1 : 0))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIndex((prev) => (prev > 0 ? prev - 1 : flatResults.length - 1))
+    } else if (e.key === 'Enter' && activeIndex >= 0) {
+      e.preventDefault()
+      const r = flatResults[activeIndex]
+      if (r.type === 'channel') handleSelectChannel(r.channel)
+      else if (r.type === 'user') handleSelectUser(r.user.id)
+      else if (r.type === 'message') handleSelectMessage(r.message.channel_id)
+    }
+  }
+
+  // Scroll active item into view
+  useEffect(() => {
+    if (activeIndex >= 0 && resultsRef.current) {
+      const el = resultsRef.current.querySelector(`[data-index="${activeIndex}"]`)
+      el?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [activeIndex])
+
+  function handleSelectChannel(channel: Channel) {
+    const isMember =
+      channels.some((c) => c.id === channel.id) ||
+      dmChannels.some((c) => c.id === channel.id)
+
+    if (isMember) {
+      setCurrentChannelId(channel.id)
+    } else {
+      setPreviewChannel(channel)
+    }
+    onOpenChange(false)
+  }
+
+  function handleSelectUser(userId: string) {
+    openProfile(userId)
