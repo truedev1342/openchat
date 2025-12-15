@@ -38,3 +38,43 @@ export function SavedItemsPanel({ open, onClose }: SavedItemsPanelProps) {
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  // Fix flow
+  const [showFix, setShowFix] = useState(false)
+  const [pat, setPat] = useState('')
+  const [fixing, setFixing] = useState(false)
+  const [fixError, setFixError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open || !user || !workspace) return
+    loadSavedItems()
+  }, [open, user, workspace])
+
+  async function loadSavedItems() {
+    const client = getSupabaseClient()
+    if (!client || !user || !workspace) return
+
+    setLoading(true)
+    setLoadError(null)
+    try {
+      const { data, error } = await client
+        .from('saved_items')
+        .select('*, message:messages(*, sender:profiles(*))')
+        .eq('user_id', user.id)
+        .eq('workspace_id', workspace.id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        setLoadError('table_missing')
+        return
+      }
+
+      if (data) {
+        const items = (data as (SavedItem & { message: Message })[]).filter(
+          (item) => item.message && !item.message.is_deleted
+        )
+        setSavedItems(items)
+        const ids = new Set(items.map((item) => item.message_id))
+        setSavedItemIds(ids)
+      }
+    } catch {
+      setLoadError('table_missing')
