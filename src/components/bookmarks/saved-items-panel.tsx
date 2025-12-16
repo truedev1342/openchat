@@ -78,3 +78,43 @@ export function SavedItemsPanel({ open, onClose }: SavedItemsPanelProps) {
       }
     } catch {
       setLoadError('table_missing')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleFix() {
+    if (!pat.trim()) return
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    const match = supabaseUrl.match(/https:\/\/([a-z0-9]+)\.supabase\.co/)
+    if (!match) {
+      setFixError('Could not extract project ref from Supabase URL.')
+      return
+    }
+    const projectRef = match[1]
+
+    setFixing(true)
+    setFixError(null)
+    try {
+      const res = await fetch('/api/provision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectRef, accessToken: pat.trim(), sql: SAVED_ITEMS_SQL }),
+      })
+      const result = await res.json()
+
+      if (!res.ok) {
+        setFixError(result.error || 'Failed to create table')
+        return
+      }
+
+      // Success — reload
+      setShowFix(false)
+      setPat('')
+      setLoadError(null)
+      await loadSavedItems()
+    } catch (err) {
+      setFixError(err instanceof Error ? err.message : 'Unknown error')
+    } finally {
+      setFixing(false)
+    }
