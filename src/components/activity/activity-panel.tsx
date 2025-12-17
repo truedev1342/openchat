@@ -30,3 +30,36 @@ function ActivityItemRow({ item, onNavigate }: { item: ActivityItem; onNavigate:
     reaction: <Heart className="h-3.5 w-3.5" style={{ color: '#E55B5B' }} />,
     thread_reply: <MessageSquare className="h-3.5 w-3.5" style={{ color: '#7C5CFC' }} />,
   }[item.type]
+
+  const label = {
+    mention: 'mentioned you',
+    dm: 'sent you a message',
+    reaction: 'reacted to your message',
+    thread_reply: 'replied to a thread',
+  }[item.type]
+
+  return (
+    <button
+      onClick={handleClick}
+      className="w-full text-left px-4 py-3 transition-colors hover:bg-[#F5F2FF] group"
+      style={{
+        borderBottom: '1px solid #F0EBFF',
+        background: !item.read ? '#EDE5FF' : undefined,
+        borderLeft: !item.read ? '3px solid #7C5CFC' : '3px solid transparent',
+      }}
+    >
+      <div className="flex items-start gap-3">
+        {/* Avatar */}
+        {item.message.sender?.avatar_url ? (
+          <img
+            src={item.message.sender.avatar_url}
+            alt={senderName}
+            className="h-9 w-9 rounded-xl object-cover shrink-0"
+          />
+        ) : (
+          <div
+            className="h-9 w-9 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0"
+            style={{ background: '#7C5CFC' }}
+          >
+            {senderInitial}
+          </div>
