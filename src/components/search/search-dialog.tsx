@@ -184,3 +184,65 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
 
   function handleSelectUser(userId: string) {
     openProfile(userId)
+    onOpenChange(false)
+  }
+
+  function handleSelectMessage(channelId: string) {
+    setCurrentChannelId(channelId)
+    onOpenChange(false)
+  }
+
+  // Highlight matching text
+  function highlightMatch(text: string, q: string) {
+    if (!q.trim()) return text
+    const idx = text.toLowerCase().indexOf(q.toLowerCase())
+    if (idx === -1) return text
+    return (
+      <>
+        {text.slice(0, idx)}
+        <span className="bg-primary/15 text-primary font-semibold rounded-sm px-0.5">
+          {text.slice(idx, idx + q.length)}
+        </span>
+        {text.slice(idx + q.length)}
+      </>
+    )
+  }
+
+  const channelResults = results.filter((r) => r.type === 'channel')
+  const userResults = results.filter((r) => r.type === 'user')
+  const messageResults = results.filter((r) => r.type === 'message')
+
+  // Compute flat index for each result for keyboard nav
+  let flatIndex = 0
+  const channelStartIndex = 0
+  const userStartIndex = channelResults.length
+  const messageStartIndex = channelResults.length + userResults.length
+
+  // Quick actions for empty state
+  const recentChannels = channels.slice(0, 3)
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden rounded-xl shadow-2xl border-border/50">
+        {/* Search input */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b bg-muted/30">
+          <Search className="h-5 w-5 text-muted-foreground/60 shrink-0" />
+          <input
+            ref={inputRef}
+            placeholder="Search messages, channels, people..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground/50"
+            autoFocus
+          />
+          {loading && <Loader2 className="h-4 w-4 animate-spin text-primary/60" />}
+        </div>
+
+        {/* Results area */}
+        <div ref={resultsRef} className="max-h-[420px] overflow-y-auto">
+          {!query.trim() ? (
+            /* ===== EMPTY STATE ===== */
+            <div className="px-4 py-5">
+              {/* Recent channels */}
+              {recentChannels.length > 0 && (
