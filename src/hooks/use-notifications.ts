@@ -123,3 +123,28 @@ export function useNotifications() {
 
           // Don't send browser notification for current channel
           if (msg.channel_id === state.currentChannelId) return
+
+          // Send browser notification
+          sendBrowserNotification(
+            { content: msg.content, sender_id: msg.sender_id, channel_id: msg.channel_id },
+            isDm,
+            isMention,
+            (fullMsg as Message).sender?.display_name
+          )
+        }
+      )
+      .subscribe()
+
+    return () => {
+      sub.unsubscribe()
+    }
+  }, [user, workspace, currentChannelId])
+
+  function sendBrowserNotification(
+    msg: { content: string; sender_id: string; channel_id: string },
+    isDm: boolean,
+    isMention: boolean,
+    senderName?: string
+  ) {
+    if (permissionRef.current !== 'granted') return
+    if (typeof window === 'undefined' || !('Notification' in window)) return
