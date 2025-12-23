@@ -63,3 +63,35 @@ function ActivityItemRow({ item, onNavigate }: { item: ActivityItem; onNavigate:
           >
             {senderInitial}
           </div>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            {icon}
+            <span
+              className="text-[13px]"
+              style={{ color: '#2D2B3D', fontWeight: !item.read ? 700 : 600 }}
+            >
+              {senderName}
+            </span>
+            <span className="text-[12px]" style={{ color: '#8E8EA0' }}>
+              {label}
+            </span>
+          </div>
+
+          <p
+            className="text-[13px] truncate"
+            style={{ color: !item.read ? '#2D2B3D' : '#4A4860' }}
+          >
+            {contentPreview}
+          </p>
+
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[11px]" style={{ color: '#8E8EA0' }}>
+              #{item.channelName}
+            </span>
+            <span className="text-[11px]" style={{ color: '#C4C0D0' }}>
+              &middot;
+            </span>
+            <span className="text-[11px]" style={{ color: '#8E8EA0' }}>
+              {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}

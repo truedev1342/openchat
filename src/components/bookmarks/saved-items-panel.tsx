@@ -118,3 +118,43 @@ export function SavedItemsPanel({ open, onClose }: SavedItemsPanelProps) {
     } finally {
       setFixing(false)
     }
+  }
+
+  async function handleRemove(item: SavedItem) {
+    const client = getSupabaseClient()
+    if (!client || !user) return
+
+    await client.from('saved_items').delete().eq('id', item.id)
+    setSavedItems((prev) => prev.filter((i) => i.id !== item.id))
+    toggleSavedItem(item.message_id)
+  }
+
+  async function handleGoToMessage(item: SavedItem & { message: Message }) {
+    setCurrentChannelId(item.message.channel_id)
+    onClose()
+  }
+
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+
+      {/* Panel */}
+      <div className="relative ml-auto w-full max-w-md bg-white shadow-xl flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 shrink-0" style={{ borderBottom: '1px solid #E5E1EE' }}>
+          <div className="flex items-center gap-2">
+            <Bookmark className="h-5 w-5" style={{ color: '#7C5CFC' }} />
+            <h2 className="font-bold text-[17px]" style={{ color: '#2D2B3D' }}>Saved Items</h2>
+            {savedItems.length > 0 && (
+              <span className="text-xs px-1.5 py-0.5 rounded-full font-medium" style={{ background: '#EDE5FF', color: '#7C5CFC' }}>
+                {savedItems.length}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-[#F5F2FF] transition-colors"
+          >
