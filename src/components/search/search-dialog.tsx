@@ -246,3 +246,65 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
             <div className="px-4 py-5">
               {/* Recent channels */}
               {recentChannels.length > 0 && (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground/50" />
+                    <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
+                      Recent
+                    </span>
+                  </div>
+                  <div className="space-y-0.5">
+                    {recentChannels.map((ch) => (
+                      <button
+                        key={ch.id}
+                        onClick={() => { setCurrentChannelId(ch.id); onOpenChange(false) }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-muted transition-colors text-left group"
+                      >
+                        <div className="h-7 w-7 rounded-md bg-primary/8 flex items-center justify-center">
+                          {ch.is_private ? (
+                            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                          ) : (
+                            <Hash className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <span className="text-sm font-medium">{ch.name}</span>
+                        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/0 group-hover:text-muted-foreground/50 ml-auto transition-colors" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Search tips */}
+              <div className="rounded-lg border border-dashed border-border/60 p-4 text-center">
+                <Sparkles className="mx-auto h-5 w-5 text-primary/40 mb-2" />
+                <p className="text-sm font-medium text-muted-foreground/80">Search your workspace</p>
+                <p className="text-xs text-muted-foreground/50 mt-1">
+                  Find messages, channels, and people
+                </p>
+              </div>
+            </div>
+          ) : results.length === 0 && !loading ? (
+            /* ===== NO RESULTS ===== */
+            <div className="px-4 py-10 text-center">
+              <Search className="mx-auto h-8 w-8 text-muted-foreground/20 mb-3" />
+              <p className="text-sm font-medium text-muted-foreground/70">
+                No results for &quot;{query}&quot;
+              </p>
+              <p className="text-xs text-muted-foreground/50 mt-1">
+                Try a different search term
+              </p>
+            </div>
+          ) : (
+            /* ===== RESULTS ===== */
+            <div className="py-1.5">
+              {/* Channels */}
+              {channelResults.length > 0 && (
+                <div className="mb-1">
+                  <div className="flex items-center gap-2 px-4 py-2">
+                    <Hash className="h-3 w-3 text-muted-foreground/50" />
+                    <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
+                      Channels
+                    </span>
+                    <span className="text-[11px] text-muted-foreground/40">{channelResults.length}</span>
+                  </div>
