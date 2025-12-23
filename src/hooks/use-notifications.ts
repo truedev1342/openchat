@@ -148,3 +148,29 @@ export function useNotifications() {
   ) {
     if (permissionRef.current !== 'granted') return
     if (typeof window === 'undefined' || !('Notification' in window)) return
+
+    // Don't send if window is focused
+    if (document.hasFocus()) return
+
+    const title = isDm
+      ? `${senderName || 'Someone'} sent you a message`
+      : isMention
+        ? `${senderName || 'Someone'} mentioned you`
+        : 'New activity'
+    const body = msg.content
+      .replace(/@[a-f0-9-]+/g, '@user')
+      .slice(0, 100)
+
+    const notification = new Notification(title, {
+      body,
+      icon: '/favicon.ico',
+      tag: msg.channel_id,
+    })
+
+    notification.onclick = () => {
+      window.focus()
+      useAppStore.getState().setCurrentChannelId(msg.channel_id)
+      notification.close()
+    }
+  }
+}
