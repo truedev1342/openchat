@@ -158,3 +158,43 @@ export function SavedItemsPanel({ open, onClose }: SavedItemsPanelProps) {
             onClick={onClose}
             className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-[#F5F2FF] transition-colors"
           >
+            <X className="h-4 w-4" style={{ color: '#8E8EA0' }} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto">
+          {loadError ? (
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: '#FEE2E2' }}>
+                <Bookmark className="h-7 w-7" style={{ color: '#E55B5B' }} />
+              </div>
+              <h3 className="text-base font-bold mb-1" style={{ color: '#2D2B3D' }}>Database update needed</h3>
+              <p className="text-sm mb-4" style={{ color: '#8E8EA0' }}>
+                The saved_items table is missing. Click below to create it using your Supabase access token.
+              </p>
+
+              {showFix ? (
+                <div className="w-full max-w-xs space-y-3">
+                  <div>
+                    <label className="text-[11px] font-medium mb-1 block text-left" style={{ color: '#4A4860' }}>
+                      Supabase Personal Access Token
+                    </label>
+                    <input
+                      type="password"
+                      value={pat}
+                      onChange={(e) => setPat(e.target.value)}
+                      placeholder="sbp_..."
+                      className="w-full h-9 px-3 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]"
+                      style={{ borderColor: '#E5E1EE' }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleFix() }}
+                      autoFocus
+                    />
+                    <p className="text-[10px] mt-1 text-left" style={{ color: '#8E8EA0' }}>
+                      Get it from{' '}
+                      <a
+                        href="https://supabase.com/dashboard/account/tokens"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                        style={{ color: '#7C5CFC' }}
