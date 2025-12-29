@@ -95,3 +95,36 @@ function ActivityItemRow({ item, onNavigate }: { item: ActivityItem; onNavigate:
             </span>
             <span className="text-[11px]" style={{ color: '#8E8EA0' }}>
               {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+            </span>
+          </div>
+        </div>
+
+        {!item.read && (
+          <div
+            className="h-2.5 w-2.5 rounded-full shrink-0 mt-2"
+            style={{ background: '#7C5CFC' }}
+          />
+        )}
+      </div>
+    </button>
+  )
+}
+
+export function ActivityPanel() {
+  const { activityOpen, activities, closeActivity, markAllActivitiesRead } = useAppStore()
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+
+  // Split into unread and read
+  const { unreadItems, readItems } = useMemo(() => {
+    const unread: ActivityItem[] = []
+    const read: ActivityItem[] = []
+    for (const a of activities) {
+      if (!a.read) unread.push(a)
+      else read.push(a)
+    }
+    return { unreadItems: unread, readItems: read }
+  }, [activities])
+
+  // Combined list: unread first, then read — with pagination
+  const allOrdered = useMemo(() => [...unreadItems, ...readItems], [unreadItems, readItems])
+  const visibleItems = allOrdered.slice(0, visibleCount)

@@ -308,3 +308,65 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                     </span>
                     <span className="text-[11px] text-muted-foreground/40">{channelResults.length}</span>
                   </div>
+                  {channelResults.map((r, i) => {
+                    if (r.type !== 'channel') return null
+                    const idx = channelStartIndex + i
+                    return (
+                      <button
+                        key={r.channel.id}
+                        data-index={idx}
+                        onClick={() => handleSelectChannel(r.channel)}
+                        onMouseEnter={() => setActiveIndex(idx)}
+                        className={cn(
+                          'w-full flex items-center gap-3 px-4 py-2 transition-colors text-left group',
+                          activeIndex === idx ? 'bg-primary/8' : 'hover:bg-muted/60'
+                        )}
+                      >
+                        <div className={cn(
+                          'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                          activeIndex === idx ? 'bg-primary/15' : 'bg-muted'
+                        )}>
+                          {r.channel.is_private ? (
+                            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                          ) : (
+                            <Hash className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-sm font-medium">
+                            {highlightMatch(r.channel.name, query)}
+                          </span>
+                          {r.channel.description && (
+                            <p className="text-xs text-muted-foreground/60 truncate mt-0.5">
+                              {r.channel.description}
+                            </p>
+                          )}
+                        </div>
+                        <ArrowRight className={cn(
+                          'h-3.5 w-3.5 shrink-0 transition-all',
+                          activeIndex === idx ? 'text-primary/60 translate-x-0' : 'text-transparent -translate-x-1'
+                        )} />
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Users */}
+              {userResults.length > 0 && (
+                <div className="mb-1">
+                  {(channelResults.length > 0) && <div className="mx-4 border-t border-border/40 my-1" />}
+                  <div className="flex items-center gap-2 px-4 py-2">
+                    <User className="h-3 w-3 text-muted-foreground/50" />
+                    <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
+                      People
+                    </span>
+                    <span className="text-[11px] text-muted-foreground/40">{userResults.length}</span>
+                  </div>
+                  {userResults.map((r, i) => {
+                    if (r.type !== 'user') return null
+                    const idx = userStartIndex + i
+                    return (
+                      <button
+                        key={r.user.id}
+                        data-index={idx}
