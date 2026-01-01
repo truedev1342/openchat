@@ -370,3 +370,65 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                       <button
                         key={r.user.id}
                         data-index={idx}
+                        onClick={() => handleSelectUser(r.user.id)}
+                        onMouseEnter={() => setActiveIndex(idx)}
+                        className={cn(
+                          'w-full flex items-center gap-3 px-4 py-2 transition-colors text-left group',
+                          activeIndex === idx ? 'bg-primary/8' : 'hover:bg-muted/60'
+                        )}
+                      >
+                        <div className={cn(
+                          'h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 transition-colors',
+                          activeIndex === idx
+                            ? 'bg-primary/15 text-primary'
+                            : 'bg-primary/8 text-primary/70'
+                        )}>
+                          {r.user.avatar_url ? (
+                            <img src={r.user.avatar_url} alt="" className="h-8 w-8 rounded-lg object-cover" />
+                          ) : (
+                            r.user.display_name[0]?.toUpperCase() || '?'
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-sm font-medium">
+                            {highlightMatch(r.user.display_name, query)}
+                          </span>
+                          {r.user.email && (
+                            <p className="text-xs text-muted-foreground/60 truncate mt-0.5">
+                              {r.user.email}
+                            </p>
+                          )}
+                        </div>
+                        <div className={cn(
+                          'h-2 w-2 rounded-full shrink-0',
+                          r.user.is_online ? 'bg-green-500' : 'bg-muted-foreground/20'
+                        )} />
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Messages */}
+              {messageResults.length > 0 && (
+                <div>
+                  {(channelResults.length > 0 || userResults.length > 0) && (
+                    <div className="mx-4 border-t border-border/40 my-1" />
+                  )}
+                  <div className="flex items-center gap-2 px-4 py-2">
+                    <MessageSquare className="h-3 w-3 text-muted-foreground/50" />
+                    <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
+                      Messages
+                    </span>
+                    <span className="text-[11px] text-muted-foreground/40">{messageResults.length}</span>
+                  </div>
+                  {messageResults.map((r, i) => {
+                    if (r.type !== 'message') return null
+                    const m = r.message
+                    const idx = messageStartIndex + i
+                    return (
+                      <button
+                        key={m.id}
+                        data-index={idx}
+                        onClick={() => handleSelectMessage(m.channel_id)}
+                        onMouseEnter={() => setActiveIndex(idx)}
