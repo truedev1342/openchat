@@ -198,3 +198,43 @@ export function SavedItemsPanel({ open, onClose }: SavedItemsPanelProps) {
                         rel="noopener noreferrer"
                         className="underline"
                         style={{ color: '#7C5CFC' }}
+                      >
+                        supabase.com/dashboard/account/tokens
+                      </a>
+                    </p>
+                  </div>
+                  {fixError && (
+                    <p className="text-xs p-2 rounded-lg" style={{ background: '#FEE2E2', color: '#E55B5B' }}>
+                      {fixError}
+                    </p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setShowFix(false); setFixError(null) }}
+                      className="flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition-colors hover:bg-gray-50"
+                      style={{ borderColor: '#E5E1EE', color: '#8E8EA0' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleFix}
+                      disabled={fixing || !pat.trim()}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white transition-colors disabled:opacity-50"
+                      style={{ background: '#7C5CFC' }}
+                    >
+                      {fixing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wrench className="h-3.5 w-3.5" />}
+                      {fixing ? 'Creating...' : 'Create table'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowFix(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-colors hover:opacity-90"
+                  style={{ background: '#7C5CFC' }}
+                >
+                  <Wrench className="h-4 w-4" />
+                  Fix now
+                </button>
+              )}
+            </div>
