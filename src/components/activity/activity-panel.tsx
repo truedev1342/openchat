@@ -128,3 +128,35 @@ export function ActivityPanel() {
   // Combined list: unread first, then read — with pagination
   const allOrdered = useMemo(() => [...unreadItems, ...readItems], [unreadItems, readItems])
   const visibleItems = allOrdered.slice(0, visibleCount)
+  const hasMore = visibleCount < allOrdered.length
+  const remainingCount = allOrdered.length - visibleCount
+
+  if (!activityOpen) return null
+
+  function handleShowMore() {
+    setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, allOrdered.length))
+  }
+
+  // Determine where the "Earlier" divider goes
+  // It's the index where read items start within the visible list
+  const unreadVisibleCount = Math.min(unreadItems.length, visibleCount)
+  const showUnreadHeader = unreadItems.length > 0
+  const showReadHeader = visibleCount > unreadItems.length && readItems.length > 0
+
+  return (
+    <div className="w-[380px] flex flex-col h-full" style={{ background: '#fff', borderRight: '1px solid #E5E1EE' }}>
+      {/* Header */}
+      <div className="px-4 py-3 flex items-center justify-between shrink-0" style={{ borderBottom: '1px solid #E5E1EE' }}>
+        <div className="flex items-center gap-2">
+          <Bell className="h-4.5 w-4.5" style={{ color: '#7C5CFC' }} />
+          <h3 className="font-bold text-[16px]" style={{ color: '#2D2B3D' }}>Activity</h3>
+          {unreadItems.length > 0 && (
+            <span
+              className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full text-white"
+              style={{ background: '#7C5CFC' }}
+            >
+              {unreadItems.length}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
