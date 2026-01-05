@@ -238,3 +238,43 @@ export function SavedItemsPanel({ open, onClose }: SavedItemsPanelProps) {
                 </button>
               )}
             </div>
+          ) : loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-5 w-5 animate-spin mr-2" style={{ color: '#7C5CFC' }} />
+              <span style={{ color: '#8E8EA0' }}>Loading saved items...</span>
+            </div>
+          ) : savedItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: '#EDE5FF' }}>
+                <Bookmark className="h-7 w-7" style={{ color: '#7C5CFC' }} />
+              </div>
+              <h3 className="text-base font-bold mb-1" style={{ color: '#2D2B3D' }}>No saved items yet</h3>
+              <p className="text-sm" style={{ color: '#8E8EA0' }}>
+                Click the bookmark icon on any message to save it here for later.
+              </p>
+            </div>
+          ) : (
+            <div className="py-2">
+              {savedItems.map((item) => {
+                const msg = item.message
+                const sender = msg.sender
+                const displayName = sender?.display_name || 'Unknown'
+                const initial = displayName[0]?.toUpperCase() || '?'
+                const time = formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })
+                const savedTime = formatDistanceToNow(new Date(item.created_at), { addSuffix: true })
+
+                return (
+                  <div
+                    key={item.id}
+                    className="group px-5 py-3 hover:bg-[#F5F2FF] transition-colors cursor-pointer"
+                    onClick={() => handleGoToMessage(item)}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      {sender?.avatar_url ? (
+                        <img src={sender.avatar_url} alt={displayName} className="h-8 w-8 rounded-xl object-cover shrink-0" />
+                      ) : (
+                        <div className="h-8 w-8 rounded-xl flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: '#7C5CFC' }}>
+                          {initial}
+                        </div>
+                      )}
+

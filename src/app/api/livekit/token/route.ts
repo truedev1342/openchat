@@ -43,3 +43,26 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (settingsError || !settings) {
+      return NextResponse.json(
+        { error: 'LiveKit not configured. Set up LiveKit in workspace settings.' },
+        { status: 400 }
+      )
+    }
+
+    if (!settings.calls_enabled) {
+      return NextResponse.json({ error: 'Calls are disabled for this workspace' }, { status: 400 })
+    }
+
+    if (!settings.livekit_url || !settings.livekit_api_key || !settings.livekit_api_secret) {
+      return NextResponse.json(
+        { error: 'LiveKit credentials not configured. Add them in workspace settings.' },
+        { status: 400 }
+      )
+    }
+
+    // SECURITY: Use verified user.id as identity (not client-supplied value)
+    // This prevents identity spoofing — the client can suggest a displayName
+    // but the identity is always the authenticated user's ID
+    const token = new AccessToken(settings.livekit_api_key, settings.livekit_api_secret, {
+      identity: user.id,
+      name: displayName,
