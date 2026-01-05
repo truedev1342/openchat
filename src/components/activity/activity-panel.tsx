@@ -160,3 +160,36 @@ export function ActivityPanel() {
           )}
         </div>
         <div className="flex items-center gap-1">
+          {unreadItems.length > 0 && (
+            <button
+              onClick={markAllActivitiesRead}
+              className="h-7 px-2 rounded-lg flex items-center gap-1 text-[12px] transition-colors hover:bg-[#F5F2FF]"
+              style={{ color: '#7C5CFC' }}
+              title="Mark all as read"
+            >
+              <CheckCheck className="h-3.5 w-3.5" />
+              <span>Mark read</span>
+            </button>
+          )}
+          <button
+            onClick={closeActivity}
+            className="h-7 w-7 rounded-lg flex items-center justify-center transition-colors hover:bg-[#F5F2FF]"
+          >
+            <X className="h-4 w-4" style={{ color: '#8E8EA0' }} />
+          </button>
+        </div>
+      </div>
+
+      {/* Activity list */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        {activities.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+            <div
+              className="h-14 w-14 rounded-2xl flex items-center justify-center mb-3"
+              style={{ background: '#EDE5FF' }}
+            >
+              <Bell className="h-7 w-7" style={{ color: '#7C5CFC' }} />
+            </div>
+            <h4 className="text-[15px] font-semibold mb-1" style={{ color: '#2D2B3D' }}>
+              No activity yet
+            </h4>
