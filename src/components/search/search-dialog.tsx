@@ -432,3 +432,65 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                         data-index={idx}
                         onClick={() => handleSelectMessage(m.channel_id)}
                         onMouseEnter={() => setActiveIndex(idx)}
+                        className={cn(
+                          'w-full flex items-start gap-3 px-4 py-2.5 transition-colors text-left group',
+                          activeIndex === idx ? 'bg-primary/8' : 'hover:bg-muted/60'
+                        )}
+                      >
+                        <div className={cn(
+                          'h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 transition-colors',
+                          activeIndex === idx
+                            ? 'bg-primary/15 text-primary'
+                            : 'bg-primary/8 text-primary/70'
+                        )}>
+                          {m.sender?.avatar_url ? (
+                            <img src={m.sender.avatar_url} alt="" className="h-8 w-8 rounded-lg object-cover" />
+                          ) : (
+                            (m.sender?.display_name?.[0] || '?').toUpperCase()
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold">
+                              {m.sender?.display_name || 'Unknown'}
+                            </span>
+                            <span className="text-[11px] text-muted-foreground/50">
+                              in #{m.channel_name}
+                            </span>
+                            <span className="text-[11px] text-muted-foreground/40 ml-auto shrink-0">
+                              {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground/70 truncate mt-0.5">
+                            {highlightMatch(m.content, query)}
+                          </p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-border/40 bg-muted/20 px-4 py-2 flex items-center gap-4 text-[11px] text-muted-foreground/50">
+          <div className="flex items-center gap-1.5">
+            <kbd className="h-4 min-w-4 px-1 rounded bg-muted text-[10px] font-mono flex items-center justify-center border border-border/50">↑</kbd>
+            <kbd className="h-4 min-w-4 px-1 rounded bg-muted text-[10px] font-mono flex items-center justify-center border border-border/50">↓</kbd>
+            <span>navigate</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <kbd className="h-4 min-w-4 px-1 rounded bg-muted text-[10px] font-mono flex items-center justify-center border border-border/50">↵</kbd>
+            <span>open</span>
+          </div>
+          <div className="flex items-center gap-1.5 ml-auto">
+            <kbd className="h-4 min-w-4 px-1 rounded bg-muted text-[10px] font-mono flex items-center justify-center border border-border/50">esc</kbd>
+            <span>close</span>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
