@@ -66,3 +66,26 @@ export async function POST(request: NextRequest) {
     const token = new AccessToken(settings.livekit_api_key, settings.livekit_api_secret, {
       identity: user.id,
       name: displayName,
+    })
+
+    token.addGrant({
+      roomJoin: true,
+      room: roomName,
+      canPublish: true,
+      canSubscribe: true,
+    })
+
+    const jwt = await token.toJwt()
+
+    return NextResponse.json({
+      token: jwt,
+      url: settings.livekit_url,
+    })
+  } catch (error) {
+    console.error('LiveKit token error:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to generate token' },
+      { status: 500 }
+    )
+  }
+}
