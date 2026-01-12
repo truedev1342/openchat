@@ -193,3 +193,35 @@ export function ActivityPanel() {
             <h4 className="text-[15px] font-semibold mb-1" style={{ color: '#2D2B3D' }}>
               No activity yet
             </h4>
+            <p className="text-[13px]" style={{ color: '#8E8EA0' }}>
+              When someone mentions you with @, sends you a DM, or reacts to your messages, it will show up here.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Unread section */}
+            {showUnreadHeader && (
+              <div
+                className="px-4 py-2 flex items-center gap-2 sticky top-0 z-10"
+                style={{ background: '#F5F2FF', borderBottom: '1px solid #E5E1EE' }}
+              >
+                <div className="h-1.5 w-1.5 rounded-full" style={{ background: '#7C5CFC' }} />
+                <span className="text-[12px] font-bold uppercase tracking-wide" style={{ color: '#7C5CFC' }}>
+                  New ({unreadItems.length})
+                </span>
+              </div>
+            )}
+
+            {visibleItems.slice(0, unreadVisibleCount).map((item) => (
+              <ActivityItemRow key={item.id} item={item} onNavigate={() => {}} />
+            ))}
+
+            {/* Read section */}
+            {showReadHeader && (
+              <div
+                className="px-4 py-2 flex items-center gap-2"
+                style={{ background: '#FAFAFA', borderBottom: '1px solid #F0EBFF', borderTop: '1px solid #F0EBFF' }}
+              >
+                <span className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: '#8E8EA0' }}>
+                  Earlier
+                </span>

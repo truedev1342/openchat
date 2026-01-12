@@ -278,3 +278,44 @@ export function SavedItemsPanel({ open, onClose }: SavedItemsPanelProps) {
                         </div>
                       )}
 
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-semibold text-[14px]" style={{ color: '#2D2B3D' }}>
+                            {displayName}
+                          </span>
+                          <span className="text-[11px]" style={{ color: '#8E8EA0' }}>{time}</span>
+                        </div>
+                        <p
+                          className="text-[14px] leading-[1.4] mt-0.5 line-clamp-3"
+                          style={{ color: '#4A4860' }}
+                        >
+                          {msg.content}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className="text-[11px]" style={{ color: '#8E8EA0' }}>
+                            Saved {savedTime}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleRemove(item)
+                        }}
+                        className="h-7 w-7 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#EDE5FF]"
+                        title="Remove from saved"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" style={{ color: '#E55B5B' }} />
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
