@@ -225,3 +225,36 @@ export function ActivityPanel() {
                 <span className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: '#8E8EA0' }}>
                   Earlier
                 </span>
+              </div>
+            )}
+
+            {visibleItems.slice(unreadVisibleCount).map((item) => (
+              <ActivityItemRow key={item.id} item={item} onNavigate={() => {}} />
+            ))}
+
+            {/* Show more button */}
+            {hasMore && (
+              <button
+                onClick={handleShowMore}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-[13px] font-medium transition-colors hover:bg-[#F5F2FF]"
+                style={{ color: '#7C5CFC', borderTop: '1px solid #F0EBFF' }}
+              >
+                <ChevronDown className="h-4 w-4" />
+                Show more ({remainingCount} remaining)
+              </button>
+            )}
+
+            {/* Bottom spacer for "all loaded" */}
+            {!hasMore && allOrdered.length > PAGE_SIZE && (
+              <div className="px-4 py-3 text-center">
+                <span className="text-[12px]" style={{ color: '#C4C0D0' }}>
+                  All {allOrdered.length} activities loaded
+                </span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
