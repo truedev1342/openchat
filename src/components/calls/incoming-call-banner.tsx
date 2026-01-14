@@ -31,3 +31,37 @@ export function IncomingCallBanner() {
 
         osc.connect(gain)
         gain.connect(audioContextRef.current.destination)
+
+        osc.frequency.value = beepCount % 2 === 0 ? 440 : 554 // A4 and C#5 alternating
+        osc.type = 'sine'
+        gain.gain.value = 0.15
+
+        osc.start()
+        osc.stop(audioContextRef.current.currentTime + 0.15)
+        beepCount++
+      }
+
+      // Play pattern: two quick beeps, pause, repeat
+      playBeep()
+      setTimeout(() => playBeep(), 200)
+
+      ringtoneIntervalRef.current = setInterval(() => {
+        playBeep()
+        setTimeout(() => playBeep(), 200)
+      }, 1500)
+    } catch (e) {
+      console.warn('Could not play ringtone:', e)
+    }
+  }, [])
+
+  const stopRingtone = useCallback(() => {
+    if (ringtoneIntervalRef.current) {
+      clearInterval(ringtoneIntervalRef.current)
+      ringtoneIntervalRef.current = null
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(() => {})
+      audioContextRef.current = null
+    }
+  }, [])
+
