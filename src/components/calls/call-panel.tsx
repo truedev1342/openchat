@@ -94,3 +94,51 @@ function CallContent({ channelName }: { channelName: string }) {
       await client
         .from('call_participants')
         .update({
+          is_muted: isMuted,
+          is_camera_on: isCameraOn,
+          is_sharing_screen: isScreenSharing,
+        })
+        .eq('call_id', activeCall.id)
+        .eq('profile_id', user.id)
+    } catch {
+      // ignore
+    }
+  }, [isMuted, isCameraOn, isScreenSharing, user, activeCall])
+
+  useEffect(() => {
+    updateParticipantState()
+  }, [updateParticipantState])
+
+  async function toggleMute() {
+    try {
+      await localParticipant.setMicrophoneEnabled(isMuted)
+      setIsMuted(!isMuted)
+    } catch (err) {
+      console.error('Failed to toggle mute:', err)
+    }
+  }
+
+  async function toggleCamera() {
+    try {
+      await localParticipant.setCameraEnabled(!isCameraOn)
+      setIsCameraOn(!isCameraOn)
+    } catch (err) {
+      console.error('Failed to toggle camera:', err)
+    }
+  }
+
+  async function toggleScreenShare() {
+    try {
+      await localParticipant.setScreenShareEnabled(!isScreenSharing)
+      setIsScreenSharing(!isScreenSharing)
+    } catch (err) {
+      console.error('Failed to toggle screen share:', err)
+    }
+  }
+
+  async function handleLeave() {
+    const client = getSupabaseClient()
+    if (client && user && activeCall) {
+      // Mark participant as left
+      await client
+        .from('call_participants')
