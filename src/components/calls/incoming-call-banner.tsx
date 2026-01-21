@@ -65,3 +65,36 @@ export function IncomingCallBanner() {
     }
   }, [])
 
+  // Watch for new calls in channels the user belongs to
+  useEffect(() => {
+    if (!user || isInCall) {
+      setIncomingCall(null)
+      stopRingtone()
+      return
+    }
+
+    const client = getSupabaseClient()
+    if (!client) return
+
+    const callSub = client
+      .channel('incoming-call-watcher')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'active_calls' },
+        async (payload) => {
+          const call = payload.new as ActiveCall
+
+          // Don't ring for our own calls
+          if (call.started_by === user.id) return
+
+          // Don't ring for dismissed calls
+          if (dismissedCallIds.has(call.id)) return
+
+          // Already in a call
+          if (useAppStore.getState().isInCall) return
+
+          // Check if user is a member of this channel
+          const { data: membership } = await client
+            .from('channel_members')
+            .select('profile_id')
+            .eq('channel_id', call.channel_id)
