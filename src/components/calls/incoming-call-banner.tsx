@@ -98,3 +98,37 @@ export function IncomingCallBanner() {
             .from('channel_members')
             .select('profile_id')
             .eq('channel_id', call.channel_id)
+            .eq('profile_id', user.id)
+            .single()
+
+          if (!membership) return
+
+          // Get caller name
+          const { data: caller } = await client
+            .from('profiles')
+            .select('display_name')
+            .eq('id', call.started_by)
+            .single()
+
+          // Get channel name
+          const allChannels = [...useAppStore.getState().channels, ...useAppStore.getState().dmChannels]
+          const ch = allChannels.find(c => c.id === call.channel_id)
+          const dmInfo = useAppStore.getState().dmChannels.find(d => d.id === call.channel_id)
+          const channelName = ch?.name.startsWith('dm-') && dmInfo?.otherUser
+            ? dmInfo.otherUser.display_name
+            : ch?.name ? `#${ch.name}` : 'Unknown'
+
+          setIncomingCall({
+            call,
+            callerName: caller?.display_name || 'Someone',
+            channelName,
+          })
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'active_calls' },
+        (payload) => {
+          const call = payload.new as ActiveCall
+          // If call was ended, dismiss the banner
+          if (call.ended_at && incomingCall?.call.id === call.id) {
