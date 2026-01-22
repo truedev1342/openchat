@@ -142,3 +142,52 @@ function CallContent({ channelName }: { channelName: string }) {
       // Mark participant as left
       await client
         .from('call_participants')
+        .update({ left_at: new Date().toISOString() })
+        .eq('call_id', activeCall.id)
+        .eq('profile_id', user.id)
+
+      // If last participant, end the call
+      const { data: remaining } = await client
+        .from('call_participants')
+        .select('profile_id')
+        .eq('call_id', activeCall.id)
+        .is('left_at', null)
+
+      if (!remaining || remaining.length <= 1) {
+        await client
+          .from('active_calls')
+          .update({ ended_at: new Date().toISOString() })
+          .eq('id', activeCall.id)
+      }
+    }
+
+    room.disconnect()
+    leaveCall()
+  }
+
+  const videoTracks = tracks.filter(
+    (t): t is TrackReference => t.source === Track.Source.Camera && isTrackReference(t)
+  )
+  const screenTracks = tracks.filter(
+    (t): t is TrackReference => t.source === Track.Source.ScreenShare && isTrackReference(t)
+  )
+  const audioTracks = tracks.filter(
+    (t): t is TrackReference => t.source === Track.Source.Microphone && isTrackReference(t)
+  )
+
+  if (!isExpanded) {
+    // Minimized bar at bottom
+    return (
+      <div
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl"
+        style={{ background: '#2D2B3D' }}
+      >
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full animate-pulse" style={{ background: '#4ADE80' }} />
+          <span className="text-white text-sm font-medium">#{channelName}</span>
+          <span className="text-sm" style={{ color: '#8E8EA0' }}>
+            <Users className="h-3 w-3 inline mr-1" />
+            {participants.length}
+          </span>
+        </div>
+

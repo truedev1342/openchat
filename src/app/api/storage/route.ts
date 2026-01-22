@@ -17,3 +17,22 @@ export async function POST() {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 
+  const results: Record<string, string> = {}
+
+  // Create 'avatars' bucket
+  const { error: avatarsError } = await supabase.storage.createBucket('avatars', {
+    public: true,
+    fileSizeLimit: 5242880, // 5MB
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  })
+  if (avatarsError) {
+    if (avatarsError.message?.includes('already exists')) {
+      results.avatars = 'already exists'
+    } else {
+      results.avatars = `error: ${avatarsError.message}`
+    }
+  } else {
+    results.avatars = 'created'
+  }
+
+  // Create 'attachments' bucket
