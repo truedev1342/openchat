@@ -25,3 +25,30 @@ const MAX_AVATAR_SIZE = 5 * 1024 * 1024 // 5 MB
 export async function POST(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!url || !serviceKey || !anonKey) {
+    return NextResponse.json(
+      { error: 'Server not configured with service role key' },
+      { status: 500 }
+    )
+  }
+
+  // SECURITY: Verify caller is authenticated
+  const authHeader = request.headers.get('authorization')
+  if (!authHeader) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+  }
+
+  const supabaseAuth = createClient(url, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  })
+
+  const { data: { user }, error: authError } = await supabaseAuth.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+  }
+
+  try {
+    const formData = await request.formData()
+    const file = formData.get('file') as File | null
