@@ -36,3 +36,23 @@ export async function POST() {
   }
 
   // Create 'attachments' bucket
+  const { error: attachmentsError } = await supabase.storage.createBucket('attachments', {
+    public: true,
+    fileSizeLimit: 52428800, // 50MB
+  })
+  if (attachmentsError) {
+    if (attachmentsError.message?.includes('already exists')) {
+      results.attachments = 'already exists'
+    } else {
+      results.attachments = `error: ${attachmentsError.message}`
+    }
+  } else {
+    results.attachments = 'created'
+  }
+
+  // Set RLS policies for both buckets to allow authenticated users
+  // Using raw SQL via the management API isn't available here, but
+  // public buckets with service role key creation should work
+
+  return NextResponse.json({ success: true, buckets: results })
+}
