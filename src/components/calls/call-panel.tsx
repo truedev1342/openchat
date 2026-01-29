@@ -191,3 +191,51 @@ function CallContent({ channelName }: { channelName: string }) {
           </span>
         </div>
 
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={toggleMute}
+            className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors"
+            style={{ background: isMuted ? '#E55B5B' : 'rgba(255,255,255,0.1)' }}
+          >
+            {isMuted ? (
+              <MicOff className="h-4 w-4 text-white" />
+            ) : (
+              <Mic className="h-4 w-4 text-white" />
+            )}
+          </button>
+          <button
+            onClick={toggleCamera}
+            className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors"
+            style={{ background: isCameraOn ? '#7C5CFC' : 'rgba(255,255,255,0.1)' }}
+          >
+            {isCameraOn ? (
+              <Video className="h-4 w-4 text-white" />
+            ) : (
+              <VideoOff className="h-4 w-4 text-white" />
+            )}
+          </button>
+          <button
+            onClick={() => setIsExpanded(true)}
+            className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors hover:bg-white/10"
+          >
+            <Maximize2 className="h-4 w-4 text-white" />
+          </button>
+          <button
+            onClick={handleLeave}
+            className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors"
+            style={{ background: '#E55B5B' }}
+          >
+            <PhoneOff className="h-4 w-4 text-white" />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="w-full h-full flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="h-2.5 w-2.5 rounded-full animate-pulse" style={{ background: '#4ADE80' }} />
+          <span className="text-white font-semibold text-lg">#{channelName}</span>
