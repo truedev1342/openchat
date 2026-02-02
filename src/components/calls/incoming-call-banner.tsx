@@ -132,3 +132,36 @@ export function IncomingCallBanner() {
           const call = payload.new as ActiveCall
           // If call was ended, dismiss the banner
           if (call.ended_at && incomingCall?.call.id === call.id) {
+            setIncomingCall(null)
+            stopRingtone()
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      callSub.unsubscribe()
+    }
+  }, [user, isInCall, dismissedCallIds, incomingCall?.call.id, stopRingtone])
+
+  // Play ringtone when incoming call appears
+  useEffect(() => {
+    if (incomingCall) {
+      startRingtone()
+
+      // Auto-dismiss after 30 seconds
+      dismissTimerRef.current = setTimeout(() => {
+        setIncomingCall(null)
+        stopRingtone()
+      }, 30000)
+    } else {
+      stopRingtone()
+    }
+
+    return () => {
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
+      stopRingtone()
+    }
+  }, [incomingCall?.call.id, startRingtone, stopRingtone])
+
+  async function handleJoin() {
