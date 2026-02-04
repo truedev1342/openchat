@@ -52,3 +52,30 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const file = formData.get('file') as File | null
+    const bucket = (formData.get('bucket') as string) || 'attachments'
+    const path = formData.get('path') as string
+
+    if (!file || !path) {
+      return NextResponse.json(
+        { error: 'Missing file or path' },
+        { status: 400 }
+      )
+    }
+
+    // Validate bucket name
+    if (!['avatars', 'attachments'].includes(bucket)) {
+      return NextResponse.json(
+        { error: 'Invalid bucket name' },
+        { status: 400 }
+      )
+    }
+
+    // SECURITY: Validate file size
+    const maxSize = bucket === 'avatars' ? MAX_AVATAR_SIZE : MAX_FILE_SIZE
+    if (file.size > maxSize) {
+      return NextResponse.json(
+        { error: `File too large. Maximum size is ${maxSize / 1024 / 1024} MB` },
+        { status: 400 }
+      )
+    }
+
