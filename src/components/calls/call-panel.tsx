@@ -239,3 +239,51 @@ function CallContent({ channelName }: { channelName: string }) {
         <div className="flex items-center gap-3">
           <div className="h-2.5 w-2.5 rounded-full animate-pulse" style={{ background: '#4ADE80' }} />
           <span className="text-white font-semibold text-lg">#{channelName}</span>
+          <span className="text-sm flex items-center gap-1" style={{ color: '#8E8EA0' }}>
+            <Users className="h-3.5 w-3.5" />
+            {participants.length} participant{participants.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+        <button
+          onClick={() => setIsExpanded(false)}
+          className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors hover:bg-white/10"
+        >
+          <Minimize2 className="h-4 w-4 text-white" />
+        </button>
+      </div>
+
+      {/* Video grid */}
+      <div className="flex-1 px-6 pb-4 overflow-hidden">
+        <div className={`h-full grid gap-3 ${
+          participants.length <= 1
+            ? 'grid-cols-1'
+            : participants.length <= 4
+              ? 'grid-cols-2'
+              : 'grid-cols-3'
+        }`}>
+          {/* Screen share takes priority */}
+          {screenTracks.map((track) => (
+            <div
+              key={track.participant.sid + '-screen'}
+              className="relative rounded-2xl overflow-hidden col-span-full"
+              style={{ background: '#1a1a2e', aspectRatio: '16/9' }}
+            >
+              <VideoTrack
+                trackRef={track}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+              <div className="absolute bottom-3 left-3 px-2 py-1 rounded-lg text-xs text-white font-medium flex items-center gap-1.5" style={{ background: 'rgba(0,0,0,0.6)' }}>
+                <Monitor className="h-3 w-3" />
+                {track.participant.name || track.participant.identity} (screen)
+              </div>
+            </div>
+          ))}
+
+          {/* Camera tracks or placeholders */}
+          {participants.map((participant) => {
+            const camTrack = videoTracks.find(
+              (t) => t.participant.sid === participant.sid
+            )
+            const hasVideo = camTrack?.publication?.track
+
+            return (
