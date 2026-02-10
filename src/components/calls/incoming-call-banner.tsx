@@ -165,3 +165,37 @@ export function IncomingCallBanner() {
   }, [incomingCall?.call.id, startRingtone, stopRingtone])
 
   async function handleJoin() {
+    if (!incomingCall || !user) return
+
+    setJoining(true)
+    stopRingtone()
+
+    const client = getSupabaseClient()
+    if (!client) return
+
+    try {
+      const { data: { session } } = await client.auth.getSession()
+      if (!session) return
+
+      // Add participant record
+      await client.from('call_participants').upsert({
+        call_id: incomingCall.call.id,
+        profile_id: user.id,
+        joined_at: new Date().toISOString(),
+        left_at: null,
+        is_muted: false,
+        is_camera_on: false,
+        is_sharing_screen: false,
+      })
+
+      // Get token
+      const workspace = useAppStore.getState().workspace
+      const response = await fetch('/api/livekit/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          roomName: incomingCall.call.livekit_room_name,
+          workspaceId: workspace?.id,
