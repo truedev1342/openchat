@@ -79,3 +79,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // SECURITY: Validate MIME type
+    if (file.type && !ALLOWED_MIME_TYPES.has(file.type)) {
+      return NextResponse.json(
+        { error: `File type "${file.type}" is not allowed` },
+        { status: 400 }
+      )
+    }
+
+    // SECURITY: Sanitize path — prevent directory traversal
+    const sanitizedPath = path.replace(/\.\./g, '').replace(/\/\//g, '/')
+    if (sanitizedPath !== path || path.includes('..')) {
+      return NextResponse.json(
+        { error: 'Invalid file path' },
+        { status: 400 }
+      )
+    }
+
+    const supabase = createClient(url, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
+
+    // Convert File to ArrayBuffer for upload
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)

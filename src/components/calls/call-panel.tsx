@@ -287,3 +287,51 @@ function CallContent({ channelName }: { channelName: string }) {
             const hasVideo = camTrack?.publication?.track
 
             return (
+              <div
+                key={participant.sid}
+                className="relative rounded-2xl overflow-hidden flex items-center justify-center"
+                style={{ background: '#1a1a2e', minHeight: '200px' }}
+              >
+                {hasVideo ? (
+                  <VideoTrack
+                    trackRef={camTrack!}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <div
+                      className="h-20 w-20 rounded-2xl flex items-center justify-center text-3xl font-bold text-white"
+                      style={{ background: '#7C5CFC' }}
+                    >
+                      {(participant.name || participant.identity)?.[0]?.toUpperCase() || '?'}
+                    </div>
+                    <span className="text-white text-sm font-medium">
+                      {participant.name || participant.identity}
+                    </span>
+                  </div>
+                )}
+
+                {/* Participant name label */}
+                <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg text-xs text-white font-medium flex items-center gap-1.5" style={{ background: 'rgba(0,0,0,0.6)' }}>
+                  {participant.isMicrophoneEnabled === false && (
+                    <MicOff className="h-3 w-3 text-red-400" />
+                  )}
+                  {participant.name || participant.identity}
+                  {participant.isLocal && ' (You)'}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Audio tracks (invisible, just play audio) */}
+      {audioTracks
+        .filter((t) => !t.participant.isLocal)
+        .map((track) => (
+          <AudioTrack key={track.participant.sid + '-audio'} trackRef={track} />
+        ))}
+
+      {/* Controls bar */}
+      <div className="flex items-center justify-center gap-3 px-6 py-5">
+        <button
