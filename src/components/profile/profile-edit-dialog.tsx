@@ -86,3 +86,47 @@ export function ProfileEditDialog({ open, onOpenChange }: ProfileEditDialogProps
       img.src = url
     })
   }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !user) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file')
+      return
+    }
+
+    // Accept up to 20MB raw — we'll compress it down
+    if (file.size > 20 * 1024 * 1024) {
+      setError('Image must be less than 20MB')
+      return
+    }
+
+    setError('')
+    setUploading(true)
+
+    try {
+      // Compress and resize to max 500x500 JPEG
+      const compressed = await compressImage(file, 500, 0.85)
+
+      // Create a preview from the compressed blob
+      const previewUrl = URL.createObjectURL(compressed)
+      setAvatarPreview(previewUrl)
+
+      // Upload via server-side API route (bypasses RLS)
+      const path = `${user.id}.jpg`
+
+      const formData = new FormData()
+      formData.append('file', new File([compressed], `${user.id}.jpg`, { type: 'image/jpeg' }))
+      formData.append('bucket', 'avatars')
+      formData.append('path', path)
+
+      // Include auth header for server-side verification
+      const authClient = getSupabaseClient()
+      const authSession = authClient ? (await authClient.auth.getSession()).data.session : null
+      const uploadHeaders: Record<string, string> = {}
+      if (authSession?.access_token) {
+        uploadHeaders.Authorization = `Bearer ${authSession.access_token}`
+      }
+
