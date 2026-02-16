@@ -199,3 +199,36 @@ export function IncomingCallBanner() {
         body: JSON.stringify({
           roomName: incomingCall.call.livekit_room_name,
           workspaceId: workspace?.id,
+          identity: user.id,
+          displayName: user.display_name,
+        }),
+      })
+
+      if (!response.ok) throw new Error('Failed to get token')
+
+      const { token, url } = await response.json()
+      joinCall(incomingCall.call, token, url)
+
+      // Switch to the call's channel
+      useAppStore.getState().setCurrentChannelId(incomingCall.call.channel_id)
+
+      setIncomingCall(null)
+    } catch (err) {
+      console.error('Failed to join call:', err)
+    }
+    setJoining(false)
+  }
+
+  function handleDismiss() {
+    if (incomingCall) {
+      setDismissedCallIds(prev => new Set([...prev, incomingCall.call.id]))
+    }
+    setIncomingCall(null)
+    stopRingtone()
+  }
+
+  if (!incomingCall) return null
+
+  return (
+    <div className="absolute top-0 left-0 right-0 z-50 animate-in slide-in-from-top-2 duration-300">
+      <div className="mx-4 mt-3 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg" style={{ background: '#7C5CFC' }}>
