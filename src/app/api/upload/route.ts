@@ -106,3 +106,30 @@ export async function POST(request: NextRequest) {
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
+      .upload(sanitizedPath, buffer, {
+        upsert: true,
+        contentType: file.type,
+      })
+
+    if (uploadError) {
+      return NextResponse.json(
+        { error: uploadError.message },
+        { status: 500 }
+      )
+    }
+
+    const { data: urlData } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(sanitizedPath)
+
+    return NextResponse.json({
+      success: true,
+      publicUrl: urlData.publicUrl,
+    })
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Upload failed' },
+      { status: 500 }
+    )
+  }
+}
