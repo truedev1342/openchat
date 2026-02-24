@@ -130,3 +130,47 @@ export function ProfileEditDialog({ open, onOpenChange }: ProfileEditDialogProps
         uploadHeaders.Authorization = `Bearer ${authSession.access_token}`
       }
 
+      const res = await fetch('/api/upload', { method: 'POST', body: formData, headers: uploadHeaders })
+      const data = await res.json()
+
+      if (!res.ok || !data.publicUrl) {
+        throw new Error(data.error || 'Upload failed')
+      }
+
+      // Add cache-busting param
+      const newUrl = `${data.publicUrl}?t=${Date.now()}`
+      setAvatarUrl(newUrl)
+    } catch (err) {
+      console.error('Upload failed:', err)
+      setError(err instanceof Error ? err.message : 'Failed to upload image.')
+      setAvatarPreview(avatarUrl) // Revert preview
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function handleRemoveAvatar() {
+    setAvatarUrl(null)
+    setAvatarPreview(null)
+  }
+
+  async function handleSave() {
+    if (!user || !displayName.trim()) {
+      setError('Display name is required')
+      return
+    }
+
+    setSaving(true)
+    setError('')
+
+    try {
+      const client = getSupabaseClient()
+      if (!client) throw new Error('Not connected')
+
+      // Update profile in database
+      const { error: updateError } = await client
+        .from('profiles')
+        .update({
+          display_name: displayName.trim(),
+          status_emoji: statusEmoji || null,
+          status_text: statusText.trim() || null,

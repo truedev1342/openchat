@@ -335,3 +335,52 @@ function CallContent({ channelName }: { channelName: string }) {
       {/* Controls bar */}
       <div className="flex items-center justify-center gap-3 px-6 py-5">
         <button
+          onClick={toggleMute}
+          className="h-12 w-12 rounded-2xl flex items-center justify-center transition-all hover:scale-105"
+          style={{ background: isMuted ? '#E55B5B' : 'rgba(255,255,255,0.1)' }}
+          title={isMuted ? 'Unmute' : 'Mute'}
+        >
+          {isMuted ? (
+            <MicOff className="h-5 w-5 text-white" />
+          ) : (
+            <Mic className="h-5 w-5 text-white" />
+          )}
+        </button>
+
+        <button
+          onClick={toggleCamera}
+          className="h-12 w-12 rounded-2xl flex items-center justify-center transition-all hover:scale-105"
+          style={{ background: isCameraOn ? '#7C5CFC' : 'rgba(255,255,255,0.1)' }}
+          title={isCameraOn ? 'Turn off camera' : 'Turn on camera'}
+        >
+          {isCameraOn ? (
+            <Video className="h-5 w-5 text-white" />
+          ) : (
+            <VideoOff className="h-5 w-5 text-white" />
+          )}
+        </button>
+
+        <button
+          onClick={toggleScreenShare}
+          className="h-12 w-12 rounded-2xl flex items-center justify-center transition-all hover:scale-105"
+          style={{ background: isScreenSharing ? '#7C5CFC' : 'rgba(255,255,255,0.1)' }}
+          title={isScreenSharing ? 'Stop sharing' : 'Share screen'}
+        >
+          <Monitor className="h-5 w-5 text-white" />
+        </button>
+
+        <div className="w-px h-8 mx-2" style={{ background: 'rgba(255,255,255,0.1)' }} />
+
+        <button
+          onClick={handleLeave}
+          className="h-12 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all hover:scale-105 text-white font-semibold text-sm"
+          style={{ background: '#E55B5B' }}
+          title="Leave call"
+        >
+          <PhoneOff className="h-5 w-5" />
+          Leave
+        </button>
+      </div>
+    </div>
+  )
+}
