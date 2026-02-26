@@ -232,3 +232,37 @@ export function IncomingCallBanner() {
   return (
     <div className="absolute top-0 left-0 right-0 z-50 animate-in slide-in-from-top-2 duration-300">
       <div className="mx-4 mt-3 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg" style={{ background: '#7C5CFC' }}>
+        <div className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 animate-pulse" style={{ background: 'rgba(255,255,255,0.2)' }}>
+          <Phone className="h-5 w-5 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white truncate">
+            {incomingCall.callerName} is calling
+          </p>
+          <p className="text-xs text-white/70 truncate">
+            in {incomingCall.channelName}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={handleDismiss}
+            className="h-9 px-4 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5"
+            style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}
+          >
+            <X className="h-3.5 w-3.5" />
+            Dismiss
+          </button>
+          <button
+            onClick={handleJoin}
+            disabled={joining}
+            className="h-9 px-4 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5"
+            style={{ background: '#22C55E', color: '#fff' }}
+          >
+            <Phone className="h-3.5 w-3.5" />
+            {joining ? 'Joining...' : 'Join Call'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
