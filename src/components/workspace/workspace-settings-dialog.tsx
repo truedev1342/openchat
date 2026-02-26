@@ -70,3 +70,76 @@ export function WorkspaceSettingsDialog({ open, onOpenChange }: WorkspaceSetting
     calls_enabled: false,
   })
   const [savingLivekit, setSavingLivekit] = useState(false)
+  const [livekitSaved, setLivekitSaved] = useState(false)
+
+  const isAdmin = workspaceRole === 'admin' || workspaceRole === 'owner'
+  const isOwner = workspaceRole === 'owner'
+
+  useEffect(() => {
+    if (!open) {
+      setSearch('')
+      setConfirmRemoveId(null)
+      setActiveTab('general')
+      return
+    }
+    loadMembers()
+    loadLivekitConfig()
+  }, [open])
+
+  async function loadMembers() {
+    const client = getSupabaseClient()
+    if (!client || !workspace) return
+
+    setLoading(true)
+    const { data } = await client
+      .from('workspace_members')
+      .select('profile_id, role, profile:profiles(*)')
+      .eq('workspace_id', workspace.id)
+
+    if (data) {
+      const mems = data
+        .map((d) => ({
+          profile: d.profile as unknown as Profile,
+          role: d.role as 'owner' | 'admin' | 'member',
+        }))
+        .filter((m) => m.profile)
+        .sort((a, b) => {
+          const order = { owner: 0, admin: 1, member: 2 }
+          return order[a.role] - order[b.role] || a.profile.display_name.localeCompare(b.profile.display_name)
+        })
+
+      setMembers(mems)
+    }
+    setLoading(false)
+  }
+
+  async function loadLivekitConfig() {
+    const client = getSupabaseClient()
+    if (!client || !workspace) return
+
+    const { data } = await client
+      .from('workspace_settings')
+      .select('*')
+      .eq('workspace_id', workspace.id)
+      .single()
+
+    if (data) {
+      setLivekitConfig({
+        livekit_url: data.livekit_url || '',
+        livekit_api_key: data.livekit_api_key || '',
+        livekit_api_secret: data.livekit_api_secret || '',
+        calls_enabled: data.calls_enabled || false,
+      })
+    }
+  }
+
+  async function saveLivekitConfig() {
+    const client = getSupabaseClient()
+    if (!client || !workspace) return
+
+    setSavingLivekit(true)
+    setLivekitSaved(false)
+
+    try {
+      // Upsert workspace_settings
+      const { error } = await client
