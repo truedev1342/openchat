@@ -33,3 +33,38 @@ export function InviteDialog({ open, onOpenChange }: InviteDialogProps) {
   const [needsRestart, setNeedsRestart] = useState(false)
 
   const inviteLink = typeof window !== 'undefined'
+    ? `${window.location.origin}/auth?workspace=${workspace?.id}`
+    : ''
+
+  // Check if service key is configured
+  useEffect(() => {
+    if (open) {
+      fetch('/api/setup')
+        .then((r) => r.json())
+        .then((data) => setHasServiceKey(data.hasServiceKey ?? false))
+        .catch(() => setHasServiceKey(false))
+    }
+  }, [open])
+
+  async function handleSaveServiceKey() {
+    if (!serviceKey.trim()) return
+    setSavingKey(true)
+    try {
+      const res = await fetch('/api/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serviceRoleKey: serviceKey.trim() }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setNeedsRestart(true)
+      } else {
+        setError(data.error || 'Failed to save')
+      }
+    } catch {
+      setError('Failed to save service key')
+    } finally {
+      setSavingKey(false)
+    }
+  }
+

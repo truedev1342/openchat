@@ -174,3 +174,47 @@ export function ProfileEditDialog({ open, onOpenChange }: ProfileEditDialogProps
           display_name: displayName.trim(),
           status_emoji: statusEmoji || null,
           status_text: statusText.trim() || null,
+          avatar_url: avatarUrl,
+        })
+        .eq('id', user.id)
+
+      if (updateError) throw updateError
+
+      // Update auth metadata
+      await client.auth.updateUser({
+        data: { display_name: displayName.trim() },
+      })
+
+      // Update local store
+      setUser({
+        ...user,
+        display_name: displayName.trim(),
+        status_emoji: statusEmoji || null,
+        status_text: statusText.trim() || null,
+        avatar_url: avatarUrl,
+      })
+
+      onOpenChange(false)
+    } catch (err) {
+      console.error('Failed to save profile:', err)
+      setError('Failed to save profile. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const initial = (displayName || user?.display_name || '?')[0]?.toUpperCase()
+
+  // Common status emojis
+  const statusEmojis = ['😊', '🏠', '🎯', '🚀', '💤', '🏖️', '🤒', '📅', '🎉', '🔇']
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Profile</DialogTitle>
+          <DialogDescription>
+            Update your profile information and photo
+          </DialogDescription>
+        </DialogHeader>
+
