@@ -143,3 +143,76 @@ export function WorkspaceSettingsDialog({ open, onOpenChange }: WorkspaceSetting
     try {
       // Upsert workspace_settings
       const { error } = await client
+        .from('workspace_settings')
+        .upsert({
+          workspace_id: workspace.id,
+          livekit_url: livekitConfig.livekit_url || null,
+          livekit_api_key: livekitConfig.livekit_api_key || null,
+          livekit_api_secret: livekitConfig.livekit_api_secret || null,
+          calls_enabled: livekitConfig.calls_enabled,
+        })
+
+      if (error) throw error
+      setLivekitSaved(true)
+      setTimeout(() => setLivekitSaved(false), 2000)
+    } catch (err) {
+      console.error('Failed to save LiveKit config:', err)
+    }
+    setSavingLivekit(false)
+  }
+
+  async function handleChangeRole(profileId: string, newRole: 'admin' | 'member') {
+    const client = getSupabaseClient()
+    if (!client || !workspace) return
+
+    try {
+      await client
+        .from('workspace_members')
+        .update({ role: newRole })
+        .eq('workspace_id', workspace.id)
+        .eq('profile_id', profileId)
+
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.profile.id === profileId ? { ...m, role: newRole } : m
+        )
+      )
+    } catch (err) {
+      console.error('Failed to change role:', err)
+    }
+  }
+
+  async function handleRemoveMember(profileId: string) {
+    const client = getSupabaseClient()
+    if (!client || !workspace) return
+
+    setRemoving(true)
+    try {
+      // Remove from all channels in this workspace
+      const { data: channels } = await client
+        .from('channels')
+        .select('id')
+        .eq('workspace_id', workspace.id)
+
+      if (channels) {
+        for (const ch of channels) {
+          await client
+            .from('channel_members')
+            .delete()
+            .eq('channel_id', ch.id)
+            .eq('profile_id', profileId)
+        }
+      }
+
+      // Remove from workspace
+      await client
+        .from('workspace_members')
+        .delete()
+        .eq('workspace_id', workspace.id)
+        .eq('profile_id', profileId)
+
+      setMembers((prev) => prev.filter((m) => m.profile.id !== profileId))
+      setConfirmRemoveId(null)
+    } catch (err) {
+      console.error('Failed to remove member:', err)
+    }
