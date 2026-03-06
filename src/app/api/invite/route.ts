@@ -22,3 +22,27 @@ export async function POST(request: NextRequest) {
     if (!supabaseUrl || !serviceRoleKey || !supabaseAnonKey) {
       return NextResponse.json(
         { error: 'Service role key not configured. Add it in workspace settings.' },
+        { status: 400 }
+      )
+    }
+
+    // SECURITY: Verify caller is authenticated and is admin/owner of the workspace
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    }
+
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    })
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+    }
+
+    // Create admin client with service_role key
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
