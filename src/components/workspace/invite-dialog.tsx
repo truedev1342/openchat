@@ -68,3 +68,38 @@ export function InviteDialog({ open, onOpenChange }: InviteDialogProps) {
     }
   }
 
+  async function handleInvite(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email.trim() || !workspace) return
+
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      // Get auth session for server-side verification
+      const authClient = getSupabaseClient()
+      const authSession = authClient ? (await authClient.auth.getSession()).data.session : null
+
+      const res = await fetch('/api/invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authSession?.access_token ? { Authorization: `Bearer ${authSession.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          workspaceId: workspace.id,
+          workspaceName: workspace.name,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Failed to invite')
+        return
+      }
+
+      if (data.added) {
+        setSuccess(`✅ ${data.displayName || email} has been added to ${workspace.name}!`)
