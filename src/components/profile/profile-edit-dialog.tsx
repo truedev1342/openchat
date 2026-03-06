@@ -218,3 +218,47 @@ export function ProfileEditDialog({ open, onOpenChange }: ProfileEditDialogProps
           </DialogDescription>
         </DialogHeader>
 
+        <div className="space-y-5 py-2">
+          {/* Avatar */}
+          <div className="flex flex-col items-center">
+            <div className="relative group">
+              {avatarPreview ? (
+                <img
+                  src={avatarPreview}
+                  alt="Avatar"
+                  className="h-24 w-24 rounded-2xl object-cover shadow-sm"
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-2xl flex items-center justify-center text-3xl font-bold text-white" style={{ background: '#7C5CFC' }}>
+                  {initial}
+                </div>
+              )}
+
+              {/* Upload overlay */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+              >
+                {uploading ? (
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                ) : (
+                  <Camera className="h-6 w-6 text-white" />
+                )}
+              </button>
+
+              {/* Remove button */}
+              {avatarPreview && (
+                <button
+                  onClick={handleRemoveAvatar}
+                  className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ background: '#E55B5B' }}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
