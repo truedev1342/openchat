@@ -262,3 +262,47 @@ export function ProfileEditDialog({ open, onOpenChange }: ProfileEditDialogProps
             <input
               ref={fileInputRef}
               type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
+
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="mt-2 text-xs hover:underline"
+              style={{ color: '#7C5CFC' }}
+            >
+              {uploading ? 'Uploading...' : 'Change photo'}
+            </button>
+          </div>
+
+          {/* Display name */}
+          <div className="space-y-1.5">
+            <Label htmlFor="display-name">Display name</Label>
+            <Input
+              id="display-name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Your name"
+              maxLength={50}
+            />
+          </div>
+
+          {/* Status */}
+          <div className="space-y-1.5">
+            <Label>Status</Label>
+            <div className="flex gap-2">
+              <div className="relative">
+                <Input
+                  value={statusEmoji}
+                  onChange={(e) => setStatusEmoji(e.target.value)}
+                  placeholder="😊"
+                  className="w-14 text-center text-lg"
+                  maxLength={2}
+                />
+              </div>
+              <Input
+                value={statusText}
+                onChange={(e) => setStatusText(e.target.value)}
+                placeholder="What's your status?"
