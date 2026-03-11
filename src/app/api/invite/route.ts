@@ -46,3 +46,27 @@ export async function POST(request: NextRequest) {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
+      },
+    })
+
+    // Check that caller is admin/owner of the target workspace
+    const { data: membership } = await supabaseAdmin
+      .from('workspace_members')
+      .select('role')
+      .eq('workspace_id', workspaceId)
+      .eq('profile_id', user.id)
+      .single()
+
+    if (!membership || !['owner', 'admin'].includes(membership.role)) {
+      return NextResponse.json({ error: 'Only admins can invite members' }, { status: 403 })
+    }
+
+    // Check if user already exists
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
+    const existingUser = existingUsers?.users.find(
+      (u) => u.email?.toLowerCase() === email.toLowerCase()
+    )
+
+    if (existingUser) {
+      // User exists — add them to workspace directly
+      // Check if already a member

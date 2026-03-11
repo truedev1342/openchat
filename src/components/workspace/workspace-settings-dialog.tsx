@@ -216,3 +216,76 @@ export function WorkspaceSettingsDialog({ open, onOpenChange }: WorkspaceSetting
     } catch (err) {
       console.error('Failed to remove member:', err)
     }
+    setRemoving(false)
+  }
+
+  const filteredMembers = members.filter((m) =>
+    m.profile.display_name.toLowerCase().includes(search.toLowerCase()) ||
+    m.profile.email?.toLowerCase().includes(search.toLowerCase())
+  )
+
+  function roleLabel(role: string) {
+    switch (role) {
+      case 'owner': return 'Owner'
+      case 'admin': return 'Admin'
+      default: return 'Member'
+    }
+  }
+
+  function roleIcon(role: string) {
+    switch (role) {
+      case 'owner':
+        return <Crown className="h-3 w-3" style={{ color: '#F59E0B' }} />
+      case 'admin':
+        return <ShieldCheck className="h-3 w-3" style={{ color: '#7C5CFC' }} />
+      default:
+        return null
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" style={{ color: '#7C5CFC' }} />
+            Workspace Settings
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Tab Navigation */}
+        {isAdmin && (
+          <div className="flex gap-1 border-b pt-1" style={{ borderColor: '#E5E1EE' }}>
+            {[
+              { key: 'general' as const, label: 'General', icon: Settings },
+              { key: 'webhooks' as const, label: 'Webhooks', icon: Webhook },
+              { key: 'bots' as const, label: 'Bots', icon: Bot },
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors -mb-px"
+                style={{
+                  borderColor: activeTab === tab.key ? '#7C5CFC' : 'transparent',
+                  color: activeTab === tab.key ? '#7C5CFC' : '#8E8EA0',
+                }}
+              >
+                <tab.icon className="h-3.5 w-3.5" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Tab Content */}
+        {activeTab === 'webhooks' && isAdmin ? (
+          <div className="pt-2">
+            <WebhookSettings />
+          </div>
+        ) : activeTab === 'bots' && isAdmin ? (
+          <div className="pt-2">
+            <BotSettings />
+          </div>
+        ) : (
+        <div className="space-y-5 pt-1">
+          {/* Workspace name */}
