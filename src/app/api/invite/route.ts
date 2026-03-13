@@ -70,3 +70,27 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       // User exists — add them to workspace directly
       // Check if already a member
+      const { data: existing } = await supabaseAdmin
+        .from('workspace_members')
+        .select('profile_id')
+        .eq('workspace_id', workspaceId)
+        .eq('profile_id', existingUser.id)
+        .limit(1)
+
+      if (existing && existing.length > 0) {
+        return NextResponse.json({ error: 'This person is already a member', alreadyMember: true }, { status: 400 })
+      }
+
+      // Add to workspace
+      await supabaseAdmin.from('workspace_members').insert({
+        workspace_id: workspaceId,
+        profile_id: existingUser.id,
+        role: 'member',
+      })
+
+      // Add to all public channels
+      const { data: channels } = await supabaseAdmin
+        .from('channels')
+        .select('id')
+        .eq('workspace_id', workspaceId)
+        .eq('is_private', false)
