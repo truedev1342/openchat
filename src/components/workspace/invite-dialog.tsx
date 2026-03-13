@@ -103,3 +103,38 @@ export function InviteDialog({ open, onOpenChange }: InviteDialogProps) {
 
       if (data.added) {
         setSuccess(`✅ ${data.displayName || email} has been added to ${workspace.name}!`)
+      } else if (data.invited) {
+        setSuccess(`📧 Invitation email sent to ${email.trim()}! They'll join ${workspace.name} when they accept.`)
+      }
+
+      setEmail('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send invite')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleCopyLink() {
+    navigator.clipboard.writeText(inviteLink)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  // Service key setup needed
+  if (hasServiceKey === false && !needsRestart) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Setup email invitations</DialogTitle>
+            <DialogDescription>
+              To send invite emails, OpenChat needs your Supabase <strong>service_role key</strong>. This is stored server-side only and never exposed to the browser.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="service-key">Service Role Key</Label>
+              <div className="relative">
+                <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
