@@ -306,3 +306,47 @@ export function ProfileEditDialog({ open, onOpenChange }: ProfileEditDialogProps
                 value={statusText}
                 onChange={(e) => setStatusText(e.target.value)}
                 placeholder="What's your status?"
+                className="flex-1"
+                maxLength={100}
+              />
+            </div>
+            {/* Quick emoji picks */}
+            <div className="flex gap-1 pt-1">
+              {statusEmojis.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => setStatusEmoji(emoji)}
+                  className={`h-7 w-7 rounded-lg flex items-center justify-center text-sm transition-all ${
+                    statusEmoji === emoji ? 'bg-[#EDE5FF] ring-1 ring-[#7C5CFC]/30' : 'hover:bg-[#F5F2FF]'
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-sm" style={{ color: '#E55B5B' }}>{error}</p>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={saving || uploading} style={{ background: '#7C5CFC', color: '#fff' }}>
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Saving...
+              </>
+            ) : (
+              'Save changes'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}

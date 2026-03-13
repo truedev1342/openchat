@@ -138,3 +138,38 @@ export function InviteDialog({ open, onOpenChange }: InviteDialogProps) {
               <Label htmlFor="service-key">Service Role Key</Label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="service-key"
+                  type="password"
+                  placeholder="eyJhbGci..."
+                  value={serviceKey}
+                  onChange={(e) => setServiceKey(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Supabase Dashboard → Settings → API → service_role (secret)
+              </p>
+            </div>
+
+            {error && (
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button className="flex-1" onClick={handleSaveServiceKey} disabled={savingKey || !serviceKey.trim()}>
+                {savingKey ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save & Enable'}
+              </Button>
+            </div>
+
+            <div className="border-t pt-3 space-y-2">
+              <p className="text-xs text-muted-foreground">Or share the invite link manually:</p>
+              <div className="flex gap-2">
+                <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-xs text-muted-foreground truncate">
+                  <Link2 className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{inviteLink}</span>
