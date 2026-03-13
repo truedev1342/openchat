@@ -289,3 +289,75 @@ export function WorkspaceSettingsDialog({ open, onOpenChange }: WorkspaceSetting
         ) : (
         <div className="space-y-5 pt-1">
           {/* Workspace name */}
+          <div className="space-y-2">
+            <Label className="text-[13px] font-semibold uppercase tracking-wider" style={{ color: '#8E8EA0' }}>
+              Workspace name
+            </Label>
+            <div className="flex items-center gap-2.5 flex-1 px-3 py-2 rounded-lg" style={{ background: '#F5F2FF' }}>
+              <div
+                className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
+                style={{ background: '#7C5CFC' }}
+              >
+                {(workspace?.name || 'O')[0]?.toUpperCase()}
+              </div>
+              <span className="text-[15px] font-semibold" style={{ color: '#2D2B3D' }}>
+                {workspace?.name}
+              </span>
+            </div>
+          </div>
+
+          {/* Members */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-[13px] font-semibold uppercase tracking-wider" style={{ color: '#8E8EA0' }}>
+                Members ({members.length})
+              </Label>
+            </div>
+
+            {members.length > 5 && (
+              <Input
+                placeholder="Search members..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            )}
+
+            {loading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-5 w-5 animate-spin" style={{ color: '#7C5CFC' }} />
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {filteredMembers.map((m) => {
+                  const isSelf = m.profile.id === user?.id
+                  const canManage = isAdmin && !isSelf && m.role !== 'owner'
+                  const canPromote = isOwner && !isSelf && m.role !== 'owner'
+
+                  return (
+                    <div
+                      key={m.profile.id}
+                      className="flex items-center gap-2.5 px-2 py-2 rounded-lg group hover:bg-[#F5F2FF] transition-colors"
+                    >
+                      {/* Avatar */}
+                      <div className="relative shrink-0">
+                        {m.profile.avatar_url ? (
+                          <img
+                            src={m.profile.avatar_url}
+                            alt=""
+                            className="h-8 w-8 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div
+                            className="h-8 w-8 rounded-lg flex items-center justify-center text-[12px] font-bold text-white"
+                            style={{ background: '#7C5CFC' }}
+                          >
+                            {m.profile.display_name[0]?.toUpperCase()}
+                          </div>
+                        )}
+                        <Circle
+                          className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 ${
+                            m.profile.is_online
+                              ? 'fill-green-500 text-green-500'
+                              : 'fill-gray-300 text-gray-300'
+                          }`}
+                          strokeWidth={3}
