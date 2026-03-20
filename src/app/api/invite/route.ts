@@ -94,3 +94,27 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('workspace_id', workspaceId)
         .eq('is_private', false)
+
+      if (channels) {
+        for (const ch of channels) {
+          await supabaseAdmin
+            .from('channel_members')
+            .insert({ channel_id: ch.id, profile_id: existingUser.id })
+            .then(() => {})
+        }
+      }
+
+      const displayName = existingUser.user_metadata?.display_name || email
+      return NextResponse.json({ success: true, added: true, displayName })
+    }
+
+    // User doesn't exist — send invite email via Supabase Auth
+    const redirectTo = `${request.nextUrl.origin}/auth?workspace=${workspaceId}&email=${encodeURIComponent(email)}`
+
+    const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+      redirectTo,
+      data: {
+        workspace_id: workspaceId,
+        workspace_name: workspaceName || 'OpenChat',
+        display_name: email.split('@')[0],
+      },
