@@ -361,3 +361,76 @@ export function WorkspaceSettingsDialog({ open, onOpenChange }: WorkspaceSetting
                               : 'fill-gray-300 text-gray-300'
                           }`}
                           strokeWidth={3}
+                          stroke="white"
+                        />
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className="text-[13px] font-medium truncate"
+                            style={{ color: '#2D2B3D' }}
+                          >
+                            {m.profile.display_name}
+                          </span>
+                          {isSelf && (
+                            <span
+                              className="text-[10px] px-1.5 py-0.5 rounded"
+                              style={{ background: '#F5F2FF', color: '#8E8EA0' }}
+                            >
+                              you
+                            </span>
+                          )}
+                          {roleIcon(m.role)}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px]" style={{ color: '#8E8EA0' }}>
+                            {roleLabel(m.role)}
+                          </span>
+                          {m.profile.email && (
+                            <>
+                              <span style={{ color: '#C4C0D0' }}>&middot;</span>
+                              <span className="text-[11px] truncate" style={{ color: '#8E8EA0' }}>
+                                {m.profile.email}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      {canManage && (
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {/* Promote / Demote */}
+                          {canPromote && (
+                            <button
+                              onClick={() =>
+                                handleChangeRole(
+                                  m.profile.id,
+                                  m.role === 'admin' ? 'member' : 'admin'
+                                )
+                              }
+                              className="h-7 px-2 rounded-md flex items-center gap-1 text-[11px] font-medium transition-colors hover:bg-[#EDE5FF]"
+                              style={{ color: '#7C5CFC' }}
+                              title={
+                                m.role === 'admin'
+                                  ? 'Demote to member'
+                                  : 'Promote to admin'
+                              }
+                            >
+                              {m.role === 'admin' ? (
+                                <>
+                                  <Shield className="h-3 w-3" />
+                                  Demote
+                                </>
+                              ) : (
+                                <>
+                                  <ShieldCheck className="h-3 w-3" />
+                                  Admin
+                                </>
+                              )}
+                            </button>
+                          )}
+
+                          {/* Remove */}
