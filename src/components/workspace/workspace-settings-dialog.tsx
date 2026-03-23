@@ -434,3 +434,76 @@ export function WorkspaceSettingsDialog({ open, onOpenChange }: WorkspaceSetting
                           )}
 
                           {/* Remove */}
+                          {confirmRemoveId === m.profile.id ? (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleRemoveMember(m.profile.id)}
+                                disabled={removing}
+                                className="h-7 px-2 rounded-md flex items-center gap-1 text-[11px] font-medium transition-colors bg-[#FEE2E2] hover:bg-[#FECACA]"
+                                style={{ color: '#E55B5B' }}
+                              >
+                                {removing ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  'Confirm'
+                                )}
+                              </button>
+                              <button
+                                onClick={() => setConfirmRemoveId(null)}
+                                className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-[#F5F2FF]"
+                              >
+                                <X className="h-3 w-3" style={{ color: '#8E8EA0' }} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmRemoveId(m.profile.id)}
+                              className="h-7 w-7 rounded-md flex items-center justify-center transition-colors hover:bg-red-50"
+                              title="Remove from workspace"
+                            >
+                              <UserMinus className="h-3.5 w-3.5" style={{ color: '#E55B5B' }} />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Video Calls (LiveKit) */}
+          {isAdmin && (
+            <div className="space-y-3">
+              <Label className="text-[13px] font-semibold uppercase tracking-wider flex items-center gap-2" style={{ color: '#8E8EA0' }}>
+                <Video className="h-3.5 w-3.5" />
+                Video Calls (LiveKit)
+              </Label>
+
+              <div className="p-3 rounded-xl space-y-3" style={{ background: '#F5F2FF', border: '1px solid #E5E1EE' }}>
+                <p className="text-[12px]" style={{ color: '#8E8EA0' }}>
+                  Connect a{' '}
+                  <a
+                    href="https://livekit.io"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-0.5 font-medium hover:underline"
+                    style={{ color: '#7C5CFC' }}
+                  >
+                    LiveKit
+                    <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                  {' '}server to enable audio & video calls in your workspace.
+                </p>
+
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-[11px] font-medium mb-1 block" style={{ color: '#4A4860' }}>
+                      LiveKit Server URL
+                    </label>
+                    <Input
+                      placeholder="wss://your-project.livekit.cloud"
+                      value={livekitConfig.livekit_url}
+                      onChange={(e) => setLivekitConfig((c) => ({ ...c, livekit_url: e.target.value }))}
+                      className="h-8 text-[13px]"

@@ -25,3 +25,30 @@ export async function POST(request: NextRequest) {
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json(
+        { error: 'Service role key not configured. Ask your workspace admin to set SUPABASE_SERVICE_ROLE_KEY.' },
+        { status: 500 }
+      )
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    let userId: string | null = null
+
+    // Strategy 1: Try to create the user directly (works if invite user doesn't exist yet)
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        display_name: displayName || email.split('@')[0],
+        workspace_id: workspaceId,
+      },
+    })
+
+    if (newUser?.user) {
