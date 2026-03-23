@@ -173,3 +173,38 @@ export function InviteDialog({ open, onOpenChange }: InviteDialogProps) {
                 <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-xs text-muted-foreground truncate">
                   <Link2 className="h-3 w-3 shrink-0" />
                   <span className="truncate">{inviteLink}</span>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={handleCopyLink}>
+                  {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  // Needs restart after saving service key
+  if (needsRestart) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Restart required</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-center">
+            <AlertTriangle className="mx-auto h-10 w-10 text-amber-500" />
+            <p className="text-sm text-muted-foreground">
+              Service role key saved! Please restart your dev server (<code className="bg-muted px-1 py-0.5 rounded">Ctrl+C</code> then <code className="bg-muted px-1 py-0.5 rounded">npm run dev</code>) for the change to take effect.
+            </p>
+            <Button onClick={() => { setNeedsRestart(false); setHasServiceKey(true); onOpenChange(false) }}>
+              I&apos;ve restarted
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  // Main invite dialog
