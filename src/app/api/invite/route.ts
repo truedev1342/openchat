@@ -118,3 +118,28 @@ export async function POST(request: NextRequest) {
         workspace_name: workspaceName || 'OpenChat',
         display_name: email.split('@')[0],
       },
+    })
+
+    if (error) {
+      // Handle "already invited" case
+      if (error.message?.includes('already been registered') || error.message?.includes('already exists')) {
+        return NextResponse.json({
+          error: 'This email has already been invited. They should check their inbox.',
+          alreadyInvited: true,
+        }, { status: 400 })
+      }
+      throw error
+    }
+
+    return NextResponse.json({
+      success: true,
+      invited: true,
+      message: `Invitation email sent to ${email}`,
+    })
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to send invite' },
+      { status: 500 }
+    )
+  }
+}
