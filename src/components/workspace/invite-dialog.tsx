@@ -208,3 +208,38 @@ export function InviteDialog({ open, onOpenChange }: InviteDialogProps) {
   }
 
   // Main invite dialog
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Invite people to {workspace?.name}</DialogTitle>
+          <DialogDescription>
+            Send an email invitation or share the invite link.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleInvite} className="space-y-4 overflow-hidden">
+          <div className="space-y-2">
+            <Label htmlFor="invite-email">Email address</Label>
+            <div className="flex gap-2 min-w-0">
+              <div className="relative flex-1 min-w-0">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="invite-email"
+                  type="email"
+                  placeholder="colleague@company.com"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setError(null); setSuccess(null) }}
+                  className="pl-9 w-full"
+                />
+              </div>
+              <Button type="submit" disabled={loading || !email.trim()} className="shrink-0">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1" /> Send</>}
+              </Button>
+            </div>
+          </div>
+
+          {success && (
+            <div className="flex items-start gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-md">
+              <p className="text-sm text-green-600 dark:text-green-400">{success}</p>
+            </div>
