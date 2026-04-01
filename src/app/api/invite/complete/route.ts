@@ -52,3 +52,30 @@ export async function POST(request: NextRequest) {
     })
 
     if (newUser?.user) {
+      userId = newUser.user.id
+    } else if (createError) {
+      // User already exists (from inviteUserByEmail) — find and update them
+      console.log('[invite-complete] User exists, looking up to update:', createError.message)
+
+      // Find user by listing (with error handling)
+      const { data: usersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
+      })
+
+      if (listError) {
+        console.error('[invite-complete] listUsers failed:', listError)
+        return NextResponse.json(
+          { error: `Admin API error: ${listError.message}. Check SUPABASE_SERVICE_ROLE_KEY.` },
+          { status: 500 }
+        )
+      }
+
+      const existingUser = usersData?.users.find(
+        (u) => u.email?.toLowerCase() === email.toLowerCase()
+      )
+
+      if (!existingUser) {
+        return NextResponse.json(
+          { error: 'Could not find user account. Please try again or contact workspace admin.' },
+          { status: 404 }
