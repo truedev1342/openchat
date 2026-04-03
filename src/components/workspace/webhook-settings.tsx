@@ -25,3 +25,31 @@ export function WebhookSettings() {
     const client = getSupabaseClient()
     if (!client || !workspace) return
 
+    const { data } = await client
+      .from('incoming_webhooks')
+      .select('*')
+      .eq('workspace_id', workspace.id)
+      .order('created_at', { ascending: false })
+
+    if (data) setWebhooks(data as IncomingWebhook[])
+    setLoading(false)
+  }
+
+  async function createWebhook() {
+    const client = getSupabaseClient()
+    if (!client || !workspace || !user || !newName.trim() || !newChannel) return
+
+    setCreating(true)
+    try {
+      const { data, error } = await client
+        .from('incoming_webhooks')
+        .insert({
+          workspace_id: workspace.id,
+          channel_id: newChannel,
+          name: newName.trim(),
+          display_name: newName.trim(),
+          created_by: user.id,
+        })
+        .select()
+        .single()
+

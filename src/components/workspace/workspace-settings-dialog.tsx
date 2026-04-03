@@ -507,3 +507,76 @@ export function WorkspaceSettingsDialog({ open, onOpenChange }: WorkspaceSetting
                       value={livekitConfig.livekit_url}
                       onChange={(e) => setLivekitConfig((c) => ({ ...c, livekit_url: e.target.value }))}
                       className="h-8 text-[13px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-medium mb-1 block" style={{ color: '#4A4860' }}>
+                      API Key
+                    </label>
+                    <Input
+                      placeholder="APIxxxxxxxxx"
+                      value={livekitConfig.livekit_api_key}
+                      onChange={(e) => setLivekitConfig((c) => ({ ...c, livekit_api_key: e.target.value }))}
+                      className="h-8 text-[13px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-medium mb-1 block" style={{ color: '#4A4860' }}>
+                      API Secret
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="Your LiveKit API secret"
+                      value={livekitConfig.livekit_api_secret}
+                      onChange={(e) => setLivekitConfig((c) => ({ ...c, livekit_api_secret: e.target.value }))}
+                      className="h-8 text-[13px]"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={livekitConfig.calls_enabled}
+                        onChange={(e) => setLivekitConfig((c) => ({ ...c, calls_enabled: e.target.checked }))}
+                        className="rounded"
+                        style={{ accentColor: '#7C5CFC' }}
+                      />
+                      <span className="text-[13px] font-medium" style={{ color: '#2D2B3D' }}>
+                        Enable calls
+                      </span>
+                    </label>
+
+                    <Button
+                      size="sm"
+                      onClick={saveLivekitConfig}
+                      disabled={savingLivekit}
+                      className="h-8 px-4 text-[12px]"
+                      style={{ background: '#7C5CFC', color: '#fff' }}
+                    >
+                      {savingLivekit ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : livekitSaved ? (
+                        <><Check className="h-3 w-3 mr-1" />Saved</>
+                      ) : (
+                        'Save'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Your role info */}
+          <div className="px-3 py-2 rounded-lg text-[12px]" style={{ background: '#F5F2FF', color: '#8E8EA0' }}>
+            Your role: <strong style={{ color: '#2D2B3D' }}>{roleLabel(workspaceRole || 'member')}</strong>
+            {isAdmin && ' — You can manage members and workspace settings.'}
+            {!isAdmin && ' — Contact an admin to change workspace settings.'}
+          </div>
+        </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
