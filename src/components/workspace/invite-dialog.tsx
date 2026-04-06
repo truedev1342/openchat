@@ -243,3 +243,38 @@ export function InviteDialog({ open, onOpenChange }: InviteDialogProps) {
             <div className="flex items-start gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-md">
               <p className="text-sm text-green-600 dark:text-green-400">{success}</p>
             </div>
+          )}
+
+          {error && (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
+          <div className="border-t pt-4 space-y-1">
+            <div className="flex items-start gap-2 p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-md">
+              <Info className="h-3.5 w-3.5 text-blue-500 mt-0.5 shrink-0" />
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                Make sure your <strong>Supabase Site URL</strong> is set to your production domain (not localhost).
+                Go to Supabase Dashboard → Authentication → URL Configuration.
+              </p>
+            </div>
+          </div>
+
+          <div className="border-t pt-4 space-y-2">
+            <Label>Or share invite link</Label>
+            <div className="flex gap-2 min-w-0">
+              <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-sm text-muted-foreground">
+                <Link2 className="h-4 w-4 shrink-0" />
+                <span className="truncate">{inviteLink}</span>
+              </div>
+              <Button type="button" variant="outline" size="icon" onClick={handleCopyLink}>
+                {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
