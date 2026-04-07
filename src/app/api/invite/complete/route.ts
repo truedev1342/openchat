@@ -79,3 +79,30 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { error: 'Could not find user account. Please try again or contact workspace admin.' },
           { status: 404 }
+        )
+      }
+
+      // Update password and metadata
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        existingUser.id,
+        {
+          password,
+          email_confirm: true,
+          user_metadata: {
+            ...existingUser.user_metadata,
+            display_name: displayName || email.split('@')[0],
+          },
+        }
+      )
+
+      if (updateError) {
+        console.error('[invite-complete] updateUser failed:', updateError)
+        return NextResponse.json(
+          { error: updateError.message },
+          { status: 500 }
+        )
+      }
+
+      userId = existingUser.id
+    }
+
