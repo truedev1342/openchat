@@ -53,3 +53,30 @@ export function WebhookSettings() {
         .select()
         .single()
 
+      if (error) throw error
+      if (data) {
+        setWebhooks(prev => [data as IncomingWebhook, ...prev])
+        setNewName('')
+        setNewChannel('')
+      }
+    } catch (err) {
+      console.error('Failed to create webhook:', err)
+    }
+    setCreating(false)
+  }
+
+  async function deleteWebhook(id: string) {
+    const client = getSupabaseClient()
+    if (!client) return
+
+    await client.from('incoming_webhooks').delete().eq('id', id)
+    setWebhooks(prev => prev.filter(w => w.id !== id))
+  }
+
+  function copyWebhookUrl(webhook: IncomingWebhook) {
+    const url = `${window.location.origin}/api/webhook/${webhook.id}`
+    navigator.clipboard.writeText(url)
+    setCopiedId(webhook.id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
