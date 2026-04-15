@@ -106,3 +106,30 @@ export async function POST(request: NextRequest) {
       userId = existingUser.id
     }
 
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Failed to create or find user' },
+        { status: 500 }
+      )
+    }
+
+    // Update profile table
+    await supabaseAdmin
+      .from('profiles')
+      .update({ display_name: displayName || email.split('@')[0] })
+      .eq('id', userId)
+
+    // Add to workspace if not already a member
+    const { data: existing } = await supabaseAdmin
+      .from('workspace_members')
+      .select('profile_id')
+      .eq('workspace_id', workspaceId)
+      .eq('profile_id', userId)
+      .limit(1)
+
+    if (!existing || existing.length === 0) {
+      await supabaseAdmin.from('workspace_members').insert({
+        workspace_id: workspaceId,
+        profile_id: userId,
+        role: 'member',
+      })
