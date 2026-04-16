@@ -80,3 +80,31 @@ export function WebhookSettings() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
+  const nonDmChannels = channels.filter(c => !c.name.startsWith('dm-') && !c.name.startsWith('gdm-'))
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-sm font-semibold mb-1" style={{ color: '#2D2B3D' }}>Incoming Webhooks</h3>
+        <p className="text-xs" style={{ color: '#8E8EA0' }}>
+          Send messages to channels from external services via HTTP POST.
+        </p>
+      </div>
+
+      {/* Create new webhook */}
+      <div className="p-4 rounded-xl border" style={{ borderColor: '#E5E1EE', background: '#F5F2FF' }}>
+        <p className="text-xs font-medium mb-3" style={{ color: '#4A4860' }}>Create new webhook</p>
+        <div className="flex gap-2">
+          <Input
+            placeholder="Webhook name"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            className="flex-1"
+          />
+          <select
+            value={newChannel}
+            onChange={(e) => setNewChannel(e.target.value)}
+            className="h-9 rounded-md border px-3 text-sm bg-white"
+            style={{ borderColor: '#E5E1EE', color: '#2D2B3D' }}
+          >
+            <option value="">Select channel</option>
