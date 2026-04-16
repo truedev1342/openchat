@@ -24,3 +24,29 @@ export function BotSettings() {
 
   async function loadBots() {
     const client = getSupabaseClient()
+    if (!client || !workspace) return
+
+    const { data } = await client
+      .from('bots')
+      .select('*')
+      .eq('workspace_id', workspace.id)
+      .order('created_at', { ascending: false })
+
+    if (data) setBots(data as Bot[])
+    setLoading(false)
+  }
+
+  async function createBot() {
+    const client = getSupabaseClient()
+    if (!client || !workspace || !user || !newName.trim()) return
+
+    setCreating(true)
+    try {
+      const { data, error } = await client
+        .from('bots')
+        .insert({
+          workspace_id: workspace.id,
+          name: newName.trim().toLowerCase().replace(/\s+/g, '-'),
+          display_name: newName.trim(),
+          description: newDescription.trim() || null,
+          created_by: user.id,
