@@ -52,3 +52,31 @@ export async function POST(
     // Build message content
     const displayName = sanitizedUsername || webhook.display_name || webhook.name
     const prefix = `**[${displayName}]** `
+    const content = prefix + text
+
+    // Insert message into the webhook's configured channel
+    const { error: msgError } = await supabase.from('messages').insert({
+      channel_id: webhook.channel_id,
+      sender_id: webhook.created_by, // Use the webhook creator as sender
+      content,
+      metadata: {
+        webhook_id: webhook.id,
+        webhook_name: webhook.name,
+        display_name: displayName,
+        icon_url: icon_url || webhook.avatar_url,
+      },
+    })
+
+    if (msgError) {
+      return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    console.error('Webhook error:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal error' },
+      { status: 500 }
+    )
+  }
+}
