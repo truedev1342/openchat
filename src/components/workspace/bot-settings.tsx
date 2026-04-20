@@ -50,3 +50,29 @@ export function BotSettings() {
           display_name: newName.trim(),
           description: newDescription.trim() || null,
           created_by: user.id,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      if (data) {
+        setBots(prev => [data as Bot, ...prev])
+        setNewName('')
+        setNewDescription('')
+      }
+    } catch (err) {
+      console.error('Failed to create bot:', err)
+    }
+    setCreating(false)
+  }
+
+  async function deleteBot(id: string) {
+    const client = getSupabaseClient()
+    if (!client) return
+
+    await client.from('bots').delete().eq('id', id)
+    setBots(prev => prev.filter(b => b.id !== id))
+  }
+
+  function copyToken(bot: Bot) {
+    navigator.clipboard.writeText(bot.bot_token)
