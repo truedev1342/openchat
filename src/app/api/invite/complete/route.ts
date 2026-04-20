@@ -133,3 +133,30 @@ export async function POST(request: NextRequest) {
         profile_id: userId,
         role: 'member',
       })
+
+      // Add to all public channels
+      const { data: channels } = await supabaseAdmin
+        .from('channels')
+        .select('id')
+        .eq('workspace_id', workspaceId)
+        .eq('is_private', false)
+
+      if (channels) {
+        for (const ch of channels) {
+          await supabaseAdmin
+            .from('channel_members')
+            .insert({ channel_id: ch.id, profile_id: userId })
+            .then(() => {})
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[invite-complete] Unexpected error:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to complete invite' },
+      { status: 500 }
+    )
+  }
+}
