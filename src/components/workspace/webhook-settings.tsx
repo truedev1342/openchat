@@ -108,3 +108,30 @@ export function WebhookSettings() {
             style={{ borderColor: '#E5E1EE', color: '#2D2B3D' }}
           >
             <option value="">Select channel</option>
+            {nonDmChannels.map(ch => (
+              <option key={ch.id} value={ch.id}>#{ch.name}</option>
+            ))}
+          </select>
+          <Button
+            onClick={createWebhook}
+            disabled={!newName.trim() || !newChannel || creating}
+            size="sm"
+            style={{ background: '#7C5CFC', color: '#fff' }}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Create
+          </Button>
+        </div>
+      </div>
+
+      {/* Webhook list */}
+      {loading ? (
+        <p className="text-sm text-center py-4" style={{ color: '#8E8EA0' }}>Loading...</p>
+      ) : webhooks.length === 0 ? (
+        <div className="text-center py-8">
+          <Webhook className="h-8 w-8 mx-auto mb-2" style={{ color: '#DDD6F3' }} />
+          <p className="text-sm" style={{ color: '#8E8EA0' }}>No webhooks yet</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {webhooks.map(webhook => {
