@@ -76,3 +76,29 @@ export function BotSettings() {
 
   function copyToken(bot: Bot) {
     navigator.clipboard.writeText(bot.bot_token)
+    setCopiedId(bot.id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-sm font-semibold mb-1" style={{ color: '#2D2B3D' }}>Bots</h3>
+        <p className="text-xs" style={{ color: '#8E8EA0' }}>
+          Create bots that can send messages and respond to events.
+        </p>
+      </div>
+
+      {/* Create new bot */}
+      <div className="p-4 rounded-xl border" style={{ borderColor: '#E5E1EE', background: '#F5F2FF' }}>
+        <p className="text-xs font-medium mb-3" style={{ color: '#4A4860' }}>Create new bot</p>
+        <div className="space-y-2">
+          <Input
+            placeholder="Bot name"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+          />
+          <Input
+            placeholder="Description (optional)"
+            value={newDescription}
+            onChange={(e) => setNewDescription(e.target.value)}
