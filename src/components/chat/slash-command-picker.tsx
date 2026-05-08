@@ -22,3 +22,27 @@ export function SlashCommandPicker({ query, onSelect, onClose, position }: Slash
 
   useEffect(() => {
     if (!workspace) return
+    const client = getSupabaseClient()
+    if (!client) return
+
+    client
+      .from('slash_commands')
+      .select('*')
+      .eq('workspace_id', workspace.id)
+      .eq('is_active', true)
+      .then(({ data }) => {
+        if (data) setCustomCommands(data as SlashCommand[])
+      })
+  }, [workspace])
+
+  const cleanQuery = query.startsWith('/') ? query.slice(1) : query
+
+  const matchingBuiltin = BUILTIN_COMMANDS.filter(cmd =>
+    cmd.command.slice(1).toLowerCase().startsWith(cleanQuery.toLowerCase())
+  )
+
+  const matchingCustom = customCommands.filter(cmd =>
+    cmd.command.toLowerCase().startsWith(cleanQuery.toLowerCase())
+  )
+
+  const allMatches = [
