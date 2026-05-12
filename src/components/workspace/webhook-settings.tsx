@@ -135,3 +135,31 @@ export function WebhookSettings() {
       ) : (
         <div className="space-y-2">
           {webhooks.map(webhook => {
+            const channel = channels.find(c => c.id === webhook.channel_id)
+            return (
+              <div
+                key={webhook.id}
+                className="flex items-center gap-3 p-3 rounded-xl border"
+                style={{ borderColor: '#E5E1EE' }}
+              >
+                <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#EDE5FF' }}>
+                  <Webhook className="h-4 w-4" style={{ color: '#7C5CFC' }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" style={{ color: '#2D2B3D' }}>{webhook.name}</p>
+                  <p className="text-xs truncate" style={{ color: '#8E8EA0' }}>
+                    → #{channel?.name || 'unknown'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => copyWebhookUrl(webhook)}
+                  className="h-7 px-2.5 rounded-lg flex items-center gap-1 text-xs font-medium transition-colors hover:bg-[#F5F2FF]"
+                  style={{ color: '#7C5CFC' }}
+                  title="Copy webhook URL"
+                >
+                  {copiedId === webhook.id ? (
+                    <><Check className="h-3 w-3" /> Copied</>
+                  ) : (
+                    <><Copy className="h-3 w-3" /> Copy URL</>
+                  )}
+                </button>
