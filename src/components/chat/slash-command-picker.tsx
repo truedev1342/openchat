@@ -46,3 +46,27 @@ export function SlashCommandPicker({ query, onSelect, onClose, position }: Slash
   )
 
   const allMatches = [
+    ...matchingBuiltin.map(cmd => ({ source: 'builtin' as const, ...cmd })),
+    ...matchingCustom.map(cmd => ({ source: 'custom' as const, ...cmd })),
+  ]
+
+  useEffect(() => {
+    setSelectedIndex(0)
+  }, [query])
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setSelectedIndex(prev => (prev - 1 + allMatches.length) % allMatches.length)
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setSelectedIndex(prev => (prev + 1) % allMatches.length)
+      } else if (e.key === 'Enter' && allMatches.length > 0) {
+        e.preventDefault()
+        const match = allMatches[selectedIndex]
+        if (match) onSelect(match as BuiltinCommand | SlashCommand)
+      } else if (e.key === 'Escape') {
+        onClose()
+      }
+    }

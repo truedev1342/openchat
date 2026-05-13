@@ -163,3 +163,31 @@ export function WebhookSettings() {
                     <><Copy className="h-3 w-3" /> Copy URL</>
                   )}
                 </button>
+                <button
+                  onClick={() => deleteWebhook(webhook.id)}
+                  className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-red-50 transition-colors"
+                  title="Delete webhook"
+                >
+                  <Trash2 className="h-3.5 w-3.5 text-red-400" />
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Usage example */}
+      {webhooks.length > 0 && (
+        <div className="p-4 rounded-xl border" style={{ borderColor: '#E5E1EE', background: '#FAFAFA' }}>
+          <p className="text-xs font-medium mb-2" style={{ color: '#4A4860' }}>Usage example</p>
+          <pre className="text-xs rounded-lg p-3 overflow-x-auto" style={{ background: '#F5F2FF', color: '#4A4860' }}>
+{`curl -X POST \\
+  ${typeof window !== 'undefined' ? window.location.origin : 'https://your-app.com'}/api/webhook/${webhooks[0]?.id || '<webhook-id>'} \\
+  -H 'Content-Type: application/json' \\
+  -d '{"text": "Hello from webhook!"}'`}
+          </pre>
+        </div>
+      )}
+    </div>
+  )
+}
