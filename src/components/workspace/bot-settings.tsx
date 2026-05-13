@@ -102,3 +102,29 @@ export function BotSettings() {
             placeholder="Description (optional)"
             value={newDescription}
             onChange={(e) => setNewDescription(e.target.value)}
+          />
+          <Button
+            onClick={createBot}
+            disabled={!newName.trim() || creating}
+            size="sm"
+            className="w-full"
+            style={{ background: '#7C5CFC', color: '#fff' }}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Create Bot
+          </Button>
+        </div>
+      </div>
+
+      {/* Bot list */}
+      {loading ? (
+        <p className="text-sm text-center py-4" style={{ color: '#8E8EA0' }}>Loading...</p>
+      ) : bots.length === 0 ? (
+        <div className="text-center py-8">
+          <BotIcon className="h-8 w-8 mx-auto mb-2" style={{ color: '#DDD6F3' }} />
+          <p className="text-sm" style={{ color: '#8E8EA0' }}>No bots yet</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {bots.map(bot => (
+            <div
