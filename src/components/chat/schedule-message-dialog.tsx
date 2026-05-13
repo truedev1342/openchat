@@ -23,3 +23,28 @@ export function ScheduleMessageDialog({ open, onOpenChange, content, channelId, 
   const [scheduling, setScheduling] = useState(false)
 
   // Preset options
+  const presets = [
+    { label: 'In 30 minutes', getTime: () => new Date(Date.now() + 30 * 60 * 1000) },
+    { label: 'In 1 hour', getTime: () => new Date(Date.now() + 60 * 60 * 1000) },
+    { label: 'In 3 hours', getTime: () => new Date(Date.now() + 3 * 60 * 60 * 1000) },
+    { label: 'Tomorrow 9 AM', getTime: () => {
+      const d = new Date()
+      d.setDate(d.getDate() + 1)
+      d.setHours(9, 0, 0, 0)
+      return d
+    }},
+  ]
+
+  async function handleSchedule(scheduledFor: Date) {
+    const client = getSupabaseClient()
+    if (!client || !user || !workspace) return
+
+    setScheduling(true)
+    try {
+      await client.from('scheduled_messages').insert({
+        user_id: user.id,
+        channel_id: channelId,
+        workspace_id: workspace.id,
+        content,
+        scheduled_for: scheduledFor.toISOString(),
+      })
