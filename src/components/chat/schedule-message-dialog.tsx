@@ -48,3 +48,28 @@ export function ScheduleMessageDialog({ open, onOpenChange, content, channelId, 
         content,
         scheduled_for: scheduledFor.toISOString(),
       })
+      onScheduled()
+      onOpenChange(false)
+    } catch (err) {
+      console.error('Failed to schedule message:', err)
+    }
+    setScheduling(false)
+  }
+
+  async function handleCustomSchedule() {
+    if (!date || !time) return
+    const scheduledFor = new Date(`${date}T${time}`)
+    if (scheduledFor <= new Date()) {
+      alert('Please select a future date and time')
+      return
+    }
+    await handleSchedule(scheduledFor)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" style={{ color: '#7C5CFC' }} />
+            Schedule Message
