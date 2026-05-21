@@ -128,3 +128,29 @@ export function BotSettings() {
         <div className="space-y-2">
           {bots.map(bot => (
             <div
+              key={bot.id}
+              className="p-3 rounded-xl border"
+              style={{ borderColor: '#E5E1EE' }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#EDE5FF' }}>
+                  <BotIcon className="h-4 w-4" style={{ color: '#7C5CFC' }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" style={{ color: '#2D2B3D' }}>{bot.display_name}</p>
+                  {bot.description && (
+                    <p className="text-xs truncate" style={{ color: '#8E8EA0' }}>{bot.description}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowToken(showToken === bot.id ? null : bot.id)}
+                  className="h-7 px-2.5 rounded-lg flex items-center gap-1 text-xs font-medium transition-colors hover:bg-[#F5F2FF]"
+                  style={{ color: '#7C5CFC' }}
+                  title="Show token"
+                >
+                  <Key className="h-3 w-3" />
+                  Token
+                </button>
+                <button
+                  onClick={() => deleteBot(bot.id)}
+                  className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-red-50 transition-colors"
