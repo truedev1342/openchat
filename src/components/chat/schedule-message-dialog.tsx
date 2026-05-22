@@ -73,3 +73,28 @@ export function ScheduleMessageDialog({ open, onOpenChange, content, channelId, 
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" style={{ color: '#7C5CFC' }} />
             Schedule Message
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-2">
+          <p className="text-xs font-medium" style={{ color: '#8E8EA0' }}>Quick options</p>
+          {presets.map((preset) => (
+            <button
+              key={preset.label}
+              onClick={() => handleSchedule(preset.getTime())}
+              disabled={scheduling}
+              className="w-full text-left px-3 py-2.5 rounded-lg text-sm hover:bg-[#F5F2FF] transition-colors flex items-center gap-2"
+              style={{ color: '#2D2B3D' }}
+            >
+              <Calendar className="h-3.5 w-3.5" style={{ color: '#7C5CFC' }} />
+              {preset.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="pt-2 border-t" style={{ borderColor: '#E5E1EE' }}>
+          <p className="text-xs font-medium mb-2" style={{ color: '#8E8EA0' }}>Custom date & time</p>
+          <div className="flex gap-2">
+            <Input
+              type="date"
+              value={date}
