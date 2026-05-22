@@ -94,3 +94,28 @@ export function SlashCommandPicker({ query, onSelect, onClose, position }: Slash
           <button
             key={match.source === 'builtin' ? match.command : match.id}
             onClick={() => onSelect(match as BuiltinCommand | SlashCommand)}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-sm transition-colors ${
+              i === selectedIndex ? 'bg-[#F5F2FF]' : 'hover:bg-[#F5F2FF]'
+            }`}
+          >
+            <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#EDE5FF' }}>
+              {match.source === 'builtin' ? (
+                <Terminal className="h-3.5 w-3.5" style={{ color: '#7C5CFC' }} />
+              ) : (
+                <Zap className="h-3.5 w-3.5" style={{ color: '#7C5CFC' }} />
+              )}
+            </div>
+            <div className="min-w-0">
+              <span className="font-semibold" style={{ color: '#2D2B3D' }}>
+                {match.source === 'builtin' ? match.command : `/${match.command}`}
+              </span>
+              <span className="text-xs ml-2" style={{ color: '#8E8EA0' }}>
+                {match.description}
+              </span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
