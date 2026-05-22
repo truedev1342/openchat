@@ -70,3 +70,27 @@ export function SlashCommandPicker({ query, onSelect, onClose, position }: Slash
         onClose()
       }
     }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [allMatches, selectedIndex, onSelect, onClose])
+
+  if (allMatches.length === 0) return null
+
+  return (
+    <div
+      ref={containerRef}
+      className="fixed z-50 min-w-[280px] max-h-[200px] overflow-y-auto rounded-xl border shadow-lg"
+      style={{
+        left: position.left,
+        bottom: position.bottom,
+        background: '#fff',
+        borderColor: '#E5E1EE',
+        boxShadow: '0 8px 24px rgba(124, 92, 252, 0.1), 0 2px 8px rgba(0,0,0,0.06)',
+      }}
+    >
+      <div className="p-1">
+        {allMatches.map((match, i) => (
+          <button
+            key={match.source === 'builtin' ? match.command : match.id}
+            onClick={() => onSelect(match as BuiltinCommand | SlashCommand)}
