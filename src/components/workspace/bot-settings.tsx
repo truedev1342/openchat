@@ -154,3 +154,29 @@ export function BotSettings() {
                 <button
                   onClick={() => deleteBot(bot.id)}
                   className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-red-50 transition-colors"
+                  title="Delete bot"
+                >
+                  <Trash2 className="h-3.5 w-3.5 text-red-400" />
+                </button>
+              </div>
+              {showToken === bot.id && (
+                <div className="mt-2 flex items-center gap-2">
+                  <code className="flex-1 text-xs px-2 py-1 rounded-lg bg-[#F5F2FF] font-mono truncate" style={{ color: '#4A4860' }}>
+                    {bot.bot_token}
+                  </code>
+                  <button
+                    onClick={() => copyToken(bot)}
+                    className="h-6 px-2 rounded text-xs flex items-center gap-1 hover:bg-[#F5F2FF]"
+                    style={{ color: '#7C5CFC' }}
+                  >
+                    {copiedId === bot.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
