@@ -38,3 +38,23 @@ export function useScheduledMessages() {
 
           // Mark as sent
           await client
+            .from('scheduled_messages')
+            .update({ sent: true })
+            .eq('id', msg.id)
+        } catch (err) {
+          console.error('Failed to send scheduled message:', err)
+        }
+      }
+    }
+
+    // Check immediately on mount
+    checkScheduledMessages()
+
+    // Then poll every 30 seconds
+    intervalRef.current = setInterval(checkScheduledMessages, 30000)
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [user, workspace])
+}
