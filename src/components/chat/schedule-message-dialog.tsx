@@ -98,3 +98,29 @@ export function ScheduleMessageDialog({ open, onOpenChange, content, channelId, 
             <Input
               type="date"
               value={date}
+              onChange={(e) => setDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="flex-1"
+            />
+            <Input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-32"
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button
+            onClick={handleCustomSchedule}
+            disabled={!date || !time || scheduling}
+            style={{ background: '#7C5CFC', color: '#fff' }}
+          >
+            Schedule
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
