@@ -39,3 +39,24 @@ The app runs at [http://localhost:3000](http://localhost:3000).
 - Run the linter before pushing:
 
   ```bash
+  npm run lint
+  ```
+
+- Prefer small, composable React components and keep server logic in the
+  `src/app/api` route handlers.
+
+## Pull requests
+
+- Fill out the pull request template.
+- Reference any related issues.
+- Make sure the build passes (`npm run build`) and there are no lint errors.
+- A maintainer will review your PR and may request changes before merging.
+
+## Reporting bugs and requesting features
+
+Please use the issue templates under `.github/ISSUE_TEMPLATE` when opening an
+issue. Include steps to reproduce, expected behaviour and screenshots where
+relevant.
+
+By contributing you agree that your contributions will be licensed under the
+same license as the project.
